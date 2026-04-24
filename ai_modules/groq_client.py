@@ -36,13 +36,11 @@ class GroqClient:
         }
 
         messages = []
-        if system_instruction:
-            messages.append({"role": "system", "content": system_instruction})
         
         # Determine model - use vision model if image is provided
         current_model = self.model
         if image_path:
-            current_model = "meta-llama/llama-4-scout-17b-16e-instruct" # New Llama 4 Multimodal
+            current_model = "llama-3.2-11b-vision-preview"
             try:
                 with open(image_path, "rb") as image_file:
                     base64_image = base64.b64encode(image_file.read()).decode('utf-8')
@@ -57,6 +55,8 @@ class GroqClient:
                 print(f"[Groq] Image Error: {e}")
                 messages.append({"role": "user", "content": prompt})
         else:
+            if system_instruction:
+                messages.append({"role": "system", "content": system_instruction})
             messages.append({"role": "user", "content": prompt})
 
         start_time = time.time()
