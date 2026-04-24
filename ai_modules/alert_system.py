@@ -15,11 +15,25 @@ class AlertSystem:
             except Exception as e:
                 print(f"[Twilio Init Error] {e}")
 
+    def _format_phone(self, phone):
+        """Ensures the phone number is in E.164 format."""
+        phone = str(phone).strip()
+        if not phone.startswith('+'):
+            # Default to India if no prefix is provided
+            if len(phone) == 10:
+                phone = '+91' + phone
+            elif not phone.startswith('91') and len(phone) > 10:
+                phone = '+' + phone
+        return phone
+
     def make_automated_call(self, target_phone, animal_name):
         """Initiates an automated voice call to the farmer."""
         if not self.client or not self.twilio_phone:
-            print("[AlertSystem] Twilio not configured.")
+            print("[AlertSystem] Error: Twilio not configured in .env file.")
             return False
+            
+        target_phone = self._format_phone(target_phone)
+        print(f"[AlertSystem] Attempting to call {target_phone} for {animal_name} detection...")
             
         try:
             # TwiML for the call message
@@ -37,10 +51,10 @@ class AlertSystem:
                 from_=self.twilio_phone,
                 twiml=twiml
             )
-            print(f"[AlertSystem] Call initiated: {call.sid}")
+            print(f"[AlertSystem] SUCCESS: Call initiated. SID: {call.sid}")
             return True
         except Exception as e:
-            print(f"[AlertSystem] Call failed: {e}")
+            print(f"[AlertSystem] FAILED: Call error: {e}")
             return False
 
     def send_whatsapp_alert(self, target_phone, animal_name):
@@ -48,6 +62,7 @@ class AlertSystem:
         if not self.client or not self.twilio_phone:
             return False
             
+        target_phone = self._format_phone(target_phone)
         try:
             message = self.client.messages.create(
                 from_=f'whatsapp:{self.twilio_phone}',
