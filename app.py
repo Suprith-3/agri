@@ -217,7 +217,7 @@ def add_security_headers(response):
         "style-src 'self' 'unsafe-inline' https:; "
         "img-src 'self' data: https: http://openweathermap.org https://openweathermap.org; "
         "font-src 'self' data: https:; "
-        "frame-src 'self' https://checkout.razorpay.com; "
+        "frame-src 'self' https:; "
         "connect-src 'self' https:;"
     )
     
