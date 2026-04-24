@@ -62,7 +62,7 @@ class GroqClient:
         start_time = time.time()
         try:
             payload = {
-                "model": current_model,
+                "model": current_model if not image_path else "llama-3.2-11b-vision-preview",
                 "messages": messages,
                 "temperature": temperature,
                 "max_tokens": 1024
@@ -72,7 +72,8 @@ class GroqClient:
                 self.base_url,
                 headers=headers,
                 data=json.dumps(payload),
-                timeout=15
+                timeout=15,
+                verify=True # Change to False ONLY if you have SSL certificate issues locally
             )
             
             if response.status_code == 200:
@@ -80,10 +81,14 @@ class GroqClient:
                 latency = time.time() - start_time
                 print(f"[Groq Speed] {current_model} responded in {latency:.2f}s")
                 return json_data['choices'][0]['message']['content']
+            elif response.status_code == 401:
+                return "AI Error: Invalid Groq API Key. Please update your .env file."
+            elif response.status_code == 429:
+                return "AI Error: Groq Rate Limit reached. Please wait a moment."
             else:
                 print(f"[Groq Error] {response.status_code}: {response.text}")
-                return f"AI Error: Groq API returned {response.status_code}"
+                return f"AI Error: Groq returned {response.status_code}"
                 
         except Exception as e:
-            print(f"[Groq Connection Error] {e}")
-            return "BHOOMITRA AI (Groq) is currently unreachable. Check connection."
+            print(f"[Groq Connection Error] {str(e)}")
+            return "BHOOMITRA AI (Groq) is currently unreachable. Check your internet or API key."

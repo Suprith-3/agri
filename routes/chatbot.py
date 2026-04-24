@@ -28,8 +28,8 @@ def ask():
         
     # Get response from logic
     try:
-        api_key = current_app.config.get('OPENROUTER_API_KEY')
-        model = current_app.config.get('OPENROUTER_MODEL')
+        api_key = current_app.config.get('GROQ_API_KEY')
+        model = current_app.config.get('GROQ_MODEL')
         chatbot = GeminiChatbot(api_key=api_key, model=model)
         
         bot_response = chatbot.get_response(user_message, history=session['chat_history'])
