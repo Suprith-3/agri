@@ -66,14 +66,74 @@
             }
         }
 
-        /* MEGA-FAST UX OVERRIDES */
-        [data-aos] {
-            transition-duration: 150ms !important;
-            transition-delay: 0ms !important;
+        /* MEGA-FAST PREMIUM UX */
+        :root {
+            --primary-glow: #4CAF50;
+            --secondary-glow: #00BCD4;
+            --accent-glow: #FFC107;
+            --bg-dark: #0a0f18;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.1);
+            --shadow-lg: 0 12px 36px rgba(0,0,0,0.3);
+            --transition-speed: 0.2s;
         }
-        * {
-            /* Accelerate all UI transitions */
-            transition-duration: 150ms !important;
+
+        html { scroll-behavior: smooth; }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: #e2e8f0;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Accelerated AOS */
+        [data-aos] {
+            transition-duration: 250ms !important;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        /* Premium Smooth Hover States */
+        .btn, .card, .action-item, .nav-link {
+            transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .btn:active, .action-item:active {
+            transform: scale(0.95) !important;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-glow) !important;
+            box-shadow: 0 10px 30px -10px var(--primary-glow) !important;
+        }
+
+        /* Smooth Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-glass);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary-glow); }
+
+        /* HTMX Progress Bar (Premium Green) */
+        #nprogress .bar {
+            background: linear-gradient(to right, var(--primary-glow), var(--secondary-glow)) !important;
+            height: 3px !important;
+        }
+        #nprogress .spinner-icon { border-top-color: var(--primary-glow) !important; border-left-color: var(--primary-glow) !important; }
+
+        /* Glassmorphism Refinement */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            transition: all 0.3s ease;
         }
     </style>
     
