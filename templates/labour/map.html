@@ -42,10 +42,40 @@
     </div>
 </div>
 
+<div class="row g-3 mb-4" data-aos="fade-up">
+    <div class="col-md-5">
+        <div class="input-group">
+            <span class="input-group-text bg-dark border-glass text-success"><i class="fa-solid fa-briefcase"></i></span>
+            <select id="workTypeFilter" class="form-select bg-dark border-glass text-white">
+                <option value="all">All Types of Work</option>
+                <option value="Harvesting">Harvesting</option>
+                <option value="Plowing">Plowing</option>
+                <option value="Sowing">Sowing</option>
+                <option value="Irrigation">Irrigation</option>
+                <option value="Pesticide Spraying">Pesticide Spraying</option>
+                <option value="General Labour">General Labour</option>
+            </select>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="input-group">
+            <span class="input-group-text bg-dark border-glass text-success"><i class="fa-solid fa-arrows-left-right"></i></span>
+            <select id="radiusFilter" class="form-select bg-dark border-glass text-white">
+                <option value="10000">Within 10 km</option>
+                <option value="25000">Within 25 km</option>
+                <option value="50000" selected>Within 50 km</option>
+                <option value="100000">Within 100 km</option>
+            </select>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <button id="findWorkers" class="btn btn-primary-glow w-100">
+            <span><i class="fa-solid fa-location-crosshairs me-2"></i> Find Workers</span>
+        </button>
+    </div>
+</div>
+
 <div class="position-relative" data-aos="zoom-in">
-    <button id="findWorkers" class="btn btn-primary-glow near-me-btn">
-        <span><i class="fa-solid fa-people-arrows me-2"></i> Find Nearby Labour</span>
-    </button>
     <div id="labour-map"></div>
 </div>
 {% endblock %}
@@ -77,15 +107,17 @@
 
         var findLabour = function() {
             var btn = document.getElementById('findWorkers');
+            var workType = document.getElementById('workTypeFilter').value;
+            var rad = parseInt(document.getElementById('radiusFilter').value) || 50000;
+            
             if (!btn) return;
             
-            btn.innerHTML = '<span><i class="fa-solid fa-satellite-dish fa-spin me-2"></i> Locating...</span>';
+            btn.innerHTML = '<span><i class="fa-solid fa-satellite-dish fa-spin me-2"></i> Scanning...</span>';
 
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(function(pos) {
                     var uLat = pos.coords.latitude;
                     var uLng = pos.coords.longitude;
-                    var rad = 50000; // 50km
 
                     markers.clearLayers();
                     if (circleOverlay) mapInstance.removeLayer(circleOverlay);
@@ -95,7 +127,7 @@
                         radius: 8, fillColor: "#00BCD4", color: "#fff", weight: 2, opacity: 1, fillOpacity: 1
                     }).addTo(markers).bindPopup("<b>Your Farm Location</b>").openPopup();
 
-                    // 50km Radius
+                    // Search Radius
                     circleOverlay = L.circle([uLat, uLng], {
                         radius: rad, color: '#4CAF50', fillColor: '#4CAF50', fillOpacity: 0.1, weight: 1.5
                     }).addTo(mapInstance);
@@ -104,6 +136,9 @@
                     var count = 0;
 
                     workers.forEach(function(w) {
+                        // Work Type Filter
+                        if (workType !== 'all' && w.work_type !== workType) return;
+
                         var wPos = L.latLng(w.lat, w.lng);
                         var uPos = L.latLng(uLat, uLng);
                         var dist = uPos.distanceTo(wPos);
@@ -139,11 +174,11 @@
                     });
 
                     mapInstance.flyTo([uLat, uLng], 10.5, { duration: 2 });
-                    btn.innerHTML = `<span><i class="fa-solid fa-users me-2"></i> ${count} Workers Near You</span>`;
+                    btn.innerHTML = `<span><i class="fa-solid fa-users me-2"></i> ${count} Match Found</span>`;
                     
                 }, function() {
-                    alert("Location access denied. Manual search enabled.");
-                    btn.innerHTML = '<span><i class="fa-solid fa-people-arrows me-2"></i> Find Nearby Labour</span>';
+                    alert("Location access denied. Please enable GPS to find workers.");
+                    btn.innerHTML = '<span><i class="fa-solid fa-location-crosshairs me-2"></i> Find Workers</span>';
                 });
             }
         };
