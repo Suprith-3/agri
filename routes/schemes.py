@@ -2,8 +2,20 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from flask_login import login_required, current_user
 from models import db
 from models.scheme import GovernmentScheme, SchemeApplication
+from ai_modules.scheme_finder import SchemeFinder
 
 schemes_bp = Blueprint('schemes', __name__, url_prefix='/schemes')
+
+@schemes_bp.route('/ai-recommend')
+@login_required
+def ai_recommend():
+    """Fetch 5 AI-powered scheme recommendations."""
+    finder = SchemeFinder()
+    schemes = finder.get_recommendations(
+        user_state=current_user.state, 
+        user_district=current_user.district
+    )
+    return render_template('schemes/_ai_results.html', ai_schemes=schemes)
 
 @schemes_bp.route('/')
 def scheme_list():

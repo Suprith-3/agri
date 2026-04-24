@@ -31,6 +31,12 @@
         <p class="mt-12 text-2xl font-black uppercase tracking-[1em] opacity-50">Local Alarm Triggered</p>
     </div>
 
+    <!-- Hidden Audio for Siren (High Intensity) -->
+    <audio id="siren-audio" loop preload="auto">
+        <source src="https://www.soundjay.com/mechanical/siren-1.mp3" type="audio/mpeg">
+        <source src="https://actions.google.com/sounds/v1/emergency/police_siren.ogg" type="audio/ogg">
+    </audio>
+
     <!-- Tactical Display -->
     <div class="grid lg:grid-cols-3 gap-8 w-full max-w-7xl items-start">
         
@@ -86,6 +92,9 @@
     const alertBanner = document.getElementById('alert-banner');
     const threatText = document.getElementById('threat-name');
     const statusText = document.getElementById('uplink-status');
+    const siren = document.getElementById('siren-audio');
+    
+    let alarmTimeout = null;
 
     async function initCamera() {
         try {
@@ -133,8 +142,11 @@
                 showIntrusion(data.class);
                 addLog(`[ALERT] ${data.class.toUpperCase()} DETECTED! Alarm triggered.`, "text-red-500");
             } else {
-                hideIntrusion();
-                addLog(`[CLOUD] Scan complete. No threats found. (${lat}ms)`, "text-gray-500");
+                // If the 10-second timer isn't running, we hide the banner
+                if (!alarmTimeout) {
+                    hideIntrusion();
+                    addLog(`[CLOUD] Scan complete. No threats found. (${lat}ms)`, "text-gray-500");
+                }
             }
         } catch (err) {
             addLog("[CLOUD] Link interrupted. Reconnecting...", "text-yellow-500");
@@ -145,6 +157,25 @@
         alertBanner.classList.remove('hidden');
         threatText.innerText = `${name.toUpperCase()} DETECTED`;
         document.body.style.backgroundColor = "#450a0a";
+        
+        // Start Siren at Full Volume
+        siren.volume = 1.0;
+        siren.play().catch(e => console.log("Audio play blocked: user interaction required."));
+        
+        // Clear any existing timeout
+        if (alarmTimeout) clearTimeout(alarmTimeout);
+        
+        // Set 10 second timer to stop siren and hide banner
+        alarmTimeout = setTimeout(() => {
+            stopAlarm();
+        }, 10000);
+    }
+
+    function stopAlarm() {
+        siren.pause();
+        siren.currentTime = 0;
+        hideIntrusion();
+        alarmTimeout = null;
     }
 
     function hideIntrusion() {

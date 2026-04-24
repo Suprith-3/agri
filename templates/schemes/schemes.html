@@ -22,6 +22,35 @@
     </div>
 </div>
 
+<!-- AI Recommendation Section -->
+<div class="mb-5" data-aos="fade-up">
+    <div class="glass-card p-4 p-md-5 border-glow" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(13, 110, 253, 0.05));">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <h4 class="fw-bold text-white mb-2"><i class="fa-solid fa-wand-magic-sparkles text-success me-3"></i> AI Scheme Discovery</h4>
+                <p class="text-secondary mb-0">Let BHOOMITRA AI scan current government databases to find the 5 best schemes for your farm in <strong>{{ current_user.district }}, {{ current_user.state }}</strong>.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <button class="btn btn-primary-glow btn-lg px-5 py-3" 
+                        hx-get="{{ url_for('schemes.ai_recommend') }}" 
+                        hx-target="#ai-results" 
+                        hx-indicator="#ai-loader">
+                    <span><i class="fa-solid fa-robot me-2"></i> Research New Schemes</span>
+                </button>
+            </div>
+        </div>
+        
+        <div id="ai-loader" class="htmx-indicator text-center py-5">
+            <div class="loader-ring mx-auto mb-3"></div>
+            <p class="text-success fw-bold animate-pulse">BHOOMITRA AI is scanning government portals...</p>
+        </div>
+
+        <div id="ai-results" class="mt-5">
+            <!-- AI results will be injected here -->
+        </div>
+    </div>
+</div>
+
 <!-- Category Filters -->
 <div class="d-flex flex-wrap gap-2 mb-5" data-aos="fade-up" data-aos-delay="100">
     <a href="{{ url_for('schemes.scheme_list', q=search, category='all') }}" class="btn rounded-pill fw-bold transition-all {% if category == 'all' or not category %}btn-primary-glow px-4{% else %}btn-outline-glow px-3{% endif %}">All Schemes</a>

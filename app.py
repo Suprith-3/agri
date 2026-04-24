@@ -25,7 +25,6 @@ from routes.labour import labour_bp
 from routes.shop import shop_bp
 from routes.gov_mitra import gov_mitra_bp
 from routes.education import education_bp
-from routes.rental import rental_bp
 from routes.goat import goat_bp
 from routes.vision import vision_bp
 
@@ -66,7 +65,6 @@ def create_app():
     app.register_blueprint(shop_bp)
     app.register_blueprint(gov_mitra_bp)
     app.register_blueprint(education_bp)
-    app.register_blueprint(rental_bp)
     app.register_blueprint(goat_bp)
     app.register_blueprint(vision_bp)
 
