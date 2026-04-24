@@ -1,27 +1,23 @@
-Write-Host "--- GitHub Sync: Set All to Today ---" -ForegroundColor Cyan
+Write-Host "--- GitHub Sync: Set All to Real-Time ---" -ForegroundColor Cyan
 
-# 1. Create a fresh branch without old history
-git checkout --orphan temp_branch
+# 1. Ensure we are on the main branch
+git checkout main
 
-# 2. Add all current files
+# 2. Add all current files (including siren and GOAT fixes)
 git add -A
 
-# 3. Set the date and time variables for PowerShell
+# 3. Get the exact current time from your computer
 $today = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 $env:GIT_AUTHOR_DATE="$today"
 $env:GIT_COMMITTER_DATE="$today"
 
-# 4. Commit with today's timestamp
-git commit -m "Project Updated: $today"
-
-# 5. Delete the old main branch and rename this one to main
-git branch -D main
-git branch -m main
+# 4. Commit with the NEW time and detailed notes
+git commit -m "Project Updated: $today | Siren, GOAT & Rental Purge complete"
 
 Write-Host "Pushing changes to GitHub..." -ForegroundColor Cyan
 
-# 6. Force push to overwrite the old dates on GitHub
-git push -f origin main
+# 5. Push the updates
+git push origin main
 
-Write-Host "--- SUCCESS: All files on GitHub are now updated to Today! ---" -ForegroundColor Green
+Write-Host "--- SUCCESS: GitHub is now updated to $today! ---" -ForegroundColor Green
 pause

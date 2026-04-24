@@ -11,18 +11,28 @@ class FertilizerScanner:
     def scan(self, image_path):
         """Analyze fertilizer image."""
         prompt = """
-        You are an expert Agricultural Product Specialist. Analyze this fertilizer image with high accuracy.
-        Provide the following details in a clean Markdown format:
-        1. **Product Name & Type**
-        2. **NPK Ratio** (if visible or known)
-        3. **Safe Handling & Precautions**
-        4. **Recommended Crops**
-        5. **Precise Dosage instructions** per acre/hectare
-        6. **Application Method** (Foliar, Basal, etc.)
-        Be extremely accurate. 
+        Analyze this agricultural product image with high accuracy.
+        Provide a detailed report in a clean, professional format WITHOUT using any markdown symbols like # or *.
+        Format it exactly as a numbered list like this:
+        1. PRODUCT NAME: (Name and Type)
+        2. NPK CONTENT: (Ratio or composition)
+        3. SAFETY: (Precautions and handling)
+        4. CROPS: (Recommended usage)
+        5. DOSAGE: (Instructions per acre)
+        6. APPLICATION: (Method of use)
+        
+        Keep each point on a new line with a double space between points.
         """
         
         client = GroqClient(api_key=self.api_key)
         response_text = client.generate_content(prompt=prompt, image_path=image_path)
         
-        return response_text if response_text else "Scanner unavailable. Please try again."
+        if response_text:
+            # Aggressively remove all markdown symbols and extra hashes
+            clean_text = response_text.replace("#", "").replace("*", "").strip()
+            # Ensure double spacing between numbered points for arrangement
+            import re
+            clean_text = re.sub(r'(\d\.)', r'\n\1', clean_text)
+            return clean_text.strip()
+        
+        return "Scanner unavailable. Please try again."

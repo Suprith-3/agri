@@ -101,7 +101,7 @@
                         <h3 class="text-white fw-bold mb-0">Scan Report</h3>
                         <span class="badge bg-success border border-success border-opacity-25 rounded-pill px-3 py-2">AI Analyzed</span>
                     </div>
-                    <div id="scan-result" class="text-white opacity-90 roadmap-output">
+                    <div id="scan-result" class="text-white opacity-90 roadmap-output" style="white-space: pre-line; line-height: 1.8;">
                         {{ result_data }}
                     </div>
                 </div>
@@ -113,22 +113,13 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Results are now pre-formatted from the backend
         const resultDiv = document.getElementById('scan-result');
         if (resultDiv) {
-            resultDiv.innerHTML = marked.parse(resultDiv.innerText);
-            resultDiv.querySelectorAll('h2, h3, h4').forEach(h => {
-                h.classList.add('result-heading', 'h5');
-            });
-            resultDiv.querySelectorAll('ul').forEach(ul => {
-                ul.classList.add('list-unstyled', 'mt-2');
-                ul.querySelectorAll('li').forEach(li => {
-                    li.innerHTML = '<i class="fa-solid fa-caret-right text-success me-2"></i>' + li.innerHTML;
-                    li.classList.add('mb-2');
-                });
-            });
+            // Further clean any persistent symbols just in case
+            resultDiv.innerText = resultDiv.innerText.replace(/[#*]/g, '');
         }
 
         // Camera Logic

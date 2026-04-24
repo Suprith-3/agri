@@ -33,19 +33,38 @@
     <!-- Razorpay Checkout (Global) -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     
-    <!-- Google Translate (Modern Integration) -->
+    <!-- Google Translate (Premium Styling) -->
     <style>
         .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
         body { top: 0px !important; }
         .goog-te-gadget-simple {
-            background-color: transparent !important;
-            border: none !important;
-            padding: 0 !important;
-            font-size: 0.9rem !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 12px !important;
+            padding: 8px 12px !important;
+            font-size: 0.8rem !important;
             display: flex !important;
             align-items: center !important;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
-        .goog-te-menu-value span { color: var(--text-primary) !important; font-weight: 600 !important; }
+        .goog-te-gadget-simple:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-color: var(--primary-glow) !important;
+        }
+        .goog-te-menu-value span { 
+            color: #fff !important; 
+            font-weight: 500 !important;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        /* Mobile adjustment */
+        @media (max-width: 991px) {
+            #google_translate_element {
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+        }
     </style>
     
     <script>
@@ -67,7 +86,7 @@
                 <i class="fa-solid fa-leaf" aria-hidden="true"></i> BHOOMITRA
             </a>
             
-            <div id="google_translate_element" class="ms-auto me-3 d-none d-lg-block"></div>
+            <div id="google_translate_element" class="ms-auto me-3"></div>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
