@@ -20,3 +20,4 @@ razorpay
 psycopg2-binary
 ultralytics
 groq
+twilio
