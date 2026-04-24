@@ -10,6 +10,7 @@ class LabourWorker(db.Model):
     work_type = db.Column(db.String(100), nullable=False)  # e.g., Harvesting, Plowing, Sowing
     daily_wage = db.Column(db.Float, nullable=False)
     phone = db.Column(db.String(20), nullable=False)
+    address = db.Column(db.String(255), nullable=True)
     
     # Geolocation
     lat = db.Column(db.Float, nullable=False)
@@ -31,6 +32,7 @@ class LabourWorker(db.Model):
             'work_type': self.work_type,
             'daily_wage': self.daily_wage,
             'phone': self.phone,
+            'address': self.address,
             'lat': self.lat,
             'lng': self.lng,
             'is_available': self.is_available,

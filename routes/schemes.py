@@ -9,12 +9,27 @@ schemes_bp = Blueprint('schemes', __name__, url_prefix='/schemes')
 @schemes_bp.route('/ai-recommend')
 @login_required
 def ai_recommend():
-    """Fetch 5 AI-powered scheme recommendations."""
+    """Fetch 5 AI-powered scheme recommendations and verify links."""
     finder = SchemeFinder()
     schemes = finder.get_recommendations(
         user_state=current_user.state, 
         user_district=current_user.district
     )
+    
+    # Verify links against local database
+    verified_schemes = GovernmentScheme.query.all()
+    
+    for ai_s in schemes:
+        ai_name = ai_s.get('name', '').upper()
+        for db_s in verified_schemes:
+            # Check if AI name matches DB name (fuzzy match)
+            if db_s.name.upper() in ai_name or ai_name in db_s.name.upper():
+                ai_s['link'] = db_s.apply_link
+                # Also use DB description if it exists
+                if db_s.description:
+                    ai_s['description'] = db_s.description
+                break
+                
     return render_template('schemes/_ai_results.html', ai_schemes=schemes)
 
 @schemes_bp.route('/')

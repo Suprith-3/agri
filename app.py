@@ -122,7 +122,7 @@ def seed_database(app_instance):
                         benefits="₹6,000/year in 3 installments.",
                         eligibility="All landholding farmers.",
                         documents="Aadhaar, Land records, Bank details.",
-                        apply_link="https://pmkisan.gov.in/",
+                        apply_link="https://pmkisan.gov.in/RegistrationFormupdated.aspx",
                         category="Financial Support"
                     ),
                     GovernmentScheme(
@@ -186,7 +186,7 @@ if __name__ == '__main__':
             except: db.session.rollback()
 
             # 5. Labour Verification
-            for col, dtype in [("profile_pic", "VARCHAR(255)"), ("aadhaar_pic", "VARCHAR(255)"), ("is_verified", "BOOLEAN DEFAULT FALSE")]:
+            for col, dtype in [("profile_pic", "VARCHAR(255)"), ("aadhaar_pic", "VARCHAR(255)"), ("is_verified", "BOOLEAN DEFAULT FALSE"), ("address", "VARCHAR(255)")]:
                 try:
                     db.session.execute(text(f"ALTER TABLE labour_workers ADD COLUMN {col} {dtype}"))
                     db.session.commit()

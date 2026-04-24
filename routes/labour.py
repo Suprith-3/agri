@@ -27,13 +27,14 @@ def register_labour():
     if request.method == 'POST':
         work_type = request.form.get('work_type')
         daily_wage = request.form.get('daily_wage')
+        address = request.form.get('address')
         lat = request.form.get('lat')
         lng = request.form.get('lng')
         phone = request.form.get('phone')
         is_verified = request.form.get('is_verified') == 'true'
         
-        if not all([work_type, daily_wage, lat, lng, phone]):
-            flash("Please provide all details including live location.", "danger")
+        if not all([work_type, daily_wage, address, lat, lng, phone]):
+            flash("Please provide all details including work location address.", "danger")
             return redirect(url_for('labour.register_labour'))
 
         # Handle Profile Pic
@@ -57,6 +58,7 @@ def register_labour():
         if existing:
             existing.work_type = work_type
             existing.daily_wage = float(daily_wage)
+            existing.address = address
             existing.phone = phone
             existing.lat = float(lat)
             existing.lng = float(lng)
@@ -70,6 +72,7 @@ def register_labour():
                 name=current_user.name,
                 work_type=work_type,
                 daily_wage=float(daily_wage),
+                address=address,
                 phone=phone,
                 lat=float(lat),
                 lng=float(lng),

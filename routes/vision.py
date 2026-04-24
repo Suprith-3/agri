@@ -8,13 +8,16 @@ import cv2
 import requests
 import gc
 
+from ai_modules.alert_system import AlertSystem
+
 vision_bp = Blueprint('vision', __name__)
+alert_system = AlertSystem()
 
 # GLOBAL MODEL CONTAINER (Lazy Loaded)
 _model = None
-# Rate limiting for Telegram alerts
+# Rate limiting for alerts
 last_alert_time = 0
-ALERT_COOLDOWN = 120 # 2 minutes between alerts
+ALERT_COOLDOWN = 60 # 1 minute between calls
 
 def send_telegram_alert(animal_name):
     bot_token = current_app.config.get('TELEGRAM_BOT_TOKEN')
@@ -68,6 +71,8 @@ def process_frame():
         if not data or 'image' not in data:
             return jsonify({"status": "error", "message": "No data"}), 400
 
+        target_phone = data.get('phone_number')
+
         # Decode base64 frame
         img_data = base64.b64decode(data['image'].split(',')[1])
         nparr = np.frombuffer(img_data, np.uint8)
@@ -108,11 +113,18 @@ def process_frame():
                 "timestamp": current_time
             }
             
-            # Rate limited Telegram Alert
+            # Rate limited Alerts
             if current_time - last_alert_time > ALERT_COOLDOWN:
-                if send_telegram_alert(threat_name):
-                    last_alert_time = current_time
-                    print(f"TELEGRAM NOTIFICATION SENT: {threat_name}")
+                # 1. Telegram Alert
+                send_telegram_alert(threat_name)
+                
+                # 2. Twilio Call if phone provided
+                if target_phone:
+                    alert_system.make_automated_call(target_phone, threat_name)
+                    # alert_system.send_whatsapp_alert(target_phone, threat_name)
+                
+                last_alert_time = current_time
+                print(f"SECURITY ALERT SENT: {threat_name} to {target_phone}")
             
             print(f"SECURITY ALERT: {threat_name} Detected!")
 

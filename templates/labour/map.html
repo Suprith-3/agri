@@ -11,6 +11,13 @@
         border: 1px solid var(--border-glass);
         box-shadow: var(--shadow-green);
     }
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+        background: rgba(15, 23, 42, 0.9) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8) !important;
+    }
     .labour-popup {
         width: 220px;
         color: white;
@@ -110,14 +117,15 @@
                                              style="width: 50px; height: 50px; object-fit: cover;">
                                         <div>
                                             <h6 class="fw-bold mb-0 text-success">${w.name}</h6>
-                                            ${w.is_verified ? '<span class="badge bg-success-glow border border-success border-opacity-50 py-1 px-2" style="font-size:0.65rem;"><i class="fa-solid fa-circle-check me-1"></i>VERIFIED</span>' : ''}
+                                            ${w.is_verified ? '<span class="badge bg-success-glow border border-success border-opacity-50 py-1 px-2" style="font-size:0.65rem; color: #4CAF50;"><i class="fa-solid fa-circle-check me-1"></i>VERIFIED</span>' : ''}
                                         </div>
                                     </div>
-                                    <p class="small mb-1 text-white"><i class="fa-solid fa-briefcase me-2"></i>${w.work_type}</p>
-                                    <p class="small text-secondary mb-3"><i class="fa-solid fa-map-pin me-1"></i> ${(dist/1000).toFixed(1)} km from your farm</p>
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <span class="text-secondary small">Wage:</span>
-                                        <span class="fw-bold">₹${w.daily_wage}/day</span>
+                                    <p class="small mb-1 text-light"><i class="fa-solid fa-briefcase me-2 text-success"></i>${(w.work_type && w.work_type.trim()) ? w.work_type : 'General Labour'}</p>
+                                    <p class="small mb-1 text-white-50"><i class="fa-solid fa-location-dot me-2 text-success"></i>${(w.address && w.address.trim()) ? w.address : 'Location Hidden'}</p>
+                                    <p class="small text-white-50 mb-3"><i class="fa-solid fa-map-pin me-1 text-success"></i> ${(dist/1000).toFixed(1)} km from your farm</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-3 bg-white bg-opacity-10 p-2 rounded">
+                                         <span class="text-white-50 small">Wage:</span>
+                                         <span class="fw-bold text-white">${w.daily_wage ? '₹' + w.daily_wage + '/day' : 'Negotiable'}</span>
                                     </div>
                                     <div class="d-flex gap-2">
                                         <a href="tel:${w.phone}" class="btn btn-sm btn-success flex-fill px-2 py-2"><i class="fa-solid fa-phone"></i> Call</a>

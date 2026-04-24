@@ -63,20 +63,39 @@
             </div>
         </div>
 
-        <!-- System Log -->
-        <div class="bg-white/5 border border-white/10 rounded-[32px] p-6 h-[400px] flex flex-col">
-            <h3 class="text-[10px] font-black text-gray-500 mb-6 border-b border-white/10 pb-4 uppercase tracking-widest">Cloud Brain Log</h3>
-            <div id="log-content" class="flex-grow space-y-3 overflow-y-auto pr-2 custom-scrollbar text-[10px]">
-                <p class="text-blue-400 opacity-50">[SYSTEM] Initialization started...</p>
-                <p class="text-blue-400 opacity-50">[SYSTEM] Waiting for camera...</p>
-            </div>
-            <div class="mt-6 p-4 bg-white/5 rounded-2xl">
-                <div class="flex justify-between items-center text-[8px] text-gray-500 mb-2">
-                    <span>UPSTREAM DATA (JSON)</span>
-                    <span id="load-time">0ms</span>
+        <!-- System Log & Security Panel -->
+        <div class="flex flex-col gap-6 lg:h-[600px]">
+            <!-- Security Panel -->
+            <div class="bg-red-500/10 border border-red-500/20 rounded-[32px] p-6">
+                <h3 class="text-[10px] font-black text-red-400 mb-4 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-phone-volume animate-pulse"></i> Security Contact
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-[8px] text-gray-500 uppercase block mb-1">Alert Number (Twilio)</label>
+                        <input type="text" id="alert-phone" placeholder="+919876543210" 
+                               class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-xs focus:border-[#00ff88] outline-none transition-all text-[#00ff88]"
+                               value="{{ current_user.phone }}">
+                    </div>
+                    <p class="text-[8px] text-gray-600">The system will initiate an automated voice call to this number upon intrusion.</p>
                 </div>
-                <div class="w-full bg-gray-900 h-1 rounded-full overflow-hidden">
-                    <div id="progress-bar" class="w-0 bg-[#00ff88] h-full transition-all"></div>
+            </div>
+
+            <!-- Cloud Brain Log -->
+            <div class="bg-white/5 border border-white/10 rounded-[32px] p-6 flex-grow flex flex-col">
+                <h3 class="text-[10px] font-black text-gray-500 mb-6 border-b border-white/10 pb-4 uppercase tracking-widest">Cloud Brain Log</h3>
+                <div id="log-content" class="flex-grow space-y-3 overflow-y-auto pr-2 custom-scrollbar text-[10px]">
+                    <p class="text-blue-400 opacity-50">[SYSTEM] Initialization started...</p>
+                    <p class="text-blue-400 opacity-50">[SYSTEM] Waiting for camera...</p>
+                </div>
+                <div class="mt-6 p-4 bg-white/5 rounded-2xl">
+                    <div class="flex justify-between items-center text-[8px] text-gray-500 mb-2">
+                        <span>UPSTREAM DATA (JSON)</span>
+                        <span id="load-time">0ms</span>
+                    </div>
+                    <div class="w-full bg-gray-900 h-1 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="w-0 bg-[#00ff88] h-full transition-all"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -122,6 +141,7 @@
         
         // Compress to JPEG (for speed and low memory on server)
         const frameData = canvas.toDataURL('image/jpeg', 0.6);
+        const targetPhone = document.getElementById('alert-phone').value;
         
         const startTime = Date.now();
         document.getElementById('progress-bar').style.width = "50%";
@@ -130,7 +150,10 @@
             const response = await fetch("{{ url_for('vision.process_frame') }}", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ image: frameData })
+                body: JSON.stringify({ 
+                    image: frameData,
+                    phone_number: targetPhone
+                })
             });
             const data = await response.json();
             
