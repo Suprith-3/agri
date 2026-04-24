@@ -224,17 +224,11 @@ def add_security_headers(response):
     # HSTS (Forces HTTPS - 1 year)
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     
-    # Clickjacking Protection
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    
     # MIME Sniffing Protection
     response.headers['X-Content-Type-Options'] = 'nosniff'
     
     # Referrer Policy
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    
-    # Cross-Origin Opener Policy (COOP)
-    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
     
     return response
 
