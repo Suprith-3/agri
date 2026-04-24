@@ -210,6 +210,10 @@ if __name__ == '__main__':
 # ---------------------------------------------------------
 @app.after_request
 def add_security_headers(response):
+    # Disable security headers in local debug mode to prevent map/icon blocking
+    if app.debug:
+        return response
+        
     # Content Security Policy (Allows necessary scripts and styles)
     response.headers['Content-Security-Policy'] = (
         "default-src 'self' http: https:; "
