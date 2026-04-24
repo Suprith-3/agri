@@ -104,7 +104,15 @@
                         if (dist <= rad) {
                             var content = `
                                 <div class="labour-popup">
-                                    <h6 class="fw-bold mb-1 text-success">${w.name}</h6>
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <img src="${w.profile_pic ? '/static/uploads/' + w.profile_pic : 'https://ui-avatars.com/api/?name=' + w.name + '&background=random'}" 
+                                             class="rounded-circle border border-2 border-success" 
+                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                        <div>
+                                            <h6 class="fw-bold mb-0 text-success">${w.name}</h6>
+                                            ${w.is_verified ? '<span class="badge bg-success-glow border border-success border-opacity-50 py-1 px-2" style="font-size:0.65rem;"><i class="fa-solid fa-circle-check me-1"></i>VERIFIED</span>' : ''}
+                                        </div>
+                                    </div>
                                     <p class="small mb-1 text-white"><i class="fa-solid fa-briefcase me-2"></i>${w.work_type}</p>
                                     <p class="small text-secondary mb-3"><i class="fa-solid fa-map-pin me-1"></i> ${(dist/1000).toFixed(1)} km from your farm</p>
                                     <div class="d-flex justify-content-between align-items-center mb-3">

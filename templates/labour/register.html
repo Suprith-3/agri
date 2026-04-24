@@ -31,11 +31,33 @@
         </div>
 
         <div class="glass-card p-4 p-md-5 mb-5" data-aos="fade-up">
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data" id="labourForm">
                 <input type="hidden" name="lat" id="latInput" value="{{ existing.lat if existing else '' }}">
                 <input type="hidden" name="lng" id="lngInput" value="{{ existing.lng if existing else '' }}">
+                <input type="hidden" name="is_verified" id="isVerifiedInput" value="{{ 'true' if existing and existing.is_verified else 'false' }}">
 
                 <div class="row g-4">
+                    <!-- Profile Section -->
+                    <div class="col-12 mb-4">
+                        <div class="d-flex align-items-center gap-4">
+                            <div class="profile-preview-container">
+                                {% if existing and existing.profile_pic %}
+                                    <img src="{{ url_for('static', filename='uploads/' + existing.profile_pic) }}" id="profilePreview" class="rounded-circle shadow-lg border border-3 border-success" style="width: 100px; height: 100px; object-fit: cover;">
+                                {% else %}
+                                    <div id="profilePlaceholder" class="rounded-circle bg-glass-sm d-flex align-items-center justify-content-center text-secondary border border-glass" style="width: 100px; height: 100px;">
+                                        <i class="fa-solid fa-user-plus fa-2x"></i>
+                                    </div>
+                                    <img id="profilePreview" class="rounded-circle shadow-lg border border-3 border-success d-none" style="width: 100px; height: 100px; object-fit: cover;">
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <label class="form-label fw-bold">Profile Picture</label>
+                                <p class="text-secondary small mb-2">A clear photo helps farmers trust and hire you.</p>
+                                <input type="file" name="profile_pic" class="form-control form-control-sm" accept="image/*" onchange="previewImage(this, 'profilePreview', 'profilePlaceholder')">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Type of Work</label>
                         <select name="work_type" class="form-select" required>
@@ -59,6 +81,33 @@
                         <input type="text" name="phone" class="form-control" required value="{{ existing.phone if existing else current_user.phone }}">
                     </div>
 
+                    <!-- Aadhaar Verification Section -->
+                    <div class="col-12 mt-5">
+                        <div class="p-4 rounded-glow bg-glass-sm border border-glass">
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-id-card me-2 text-primary"></i> Trust & Verification</h5>
+                            <p class="text-secondary small mb-4">Upload your Aadhaar card photo. Our AI will verify if the name matches your profile. This is required to start working.</p>
+                            
+                            <div class="row align-items-end g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label small">Aadhaar Card Photo (Front)</label>
+                                    <input type="file" name="aadhaar_pic" id="aadhaarInput" class="form-control" accept="image/*" {{ 'disabled' if existing and existing.is_verified }}>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" id="verifyBtn" class="btn btn-outline-primary w-100" onclick="performAadhaarVerification()" {{ 'disabled' if existing and existing.is_verified }}>
+                                        <i class="fa-solid fa-robot me-2"></i> {{ 'Verified' if existing and existing.is_verified else 'Verify Identity' }}
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="verifyStatus" class="mt-3 d-none">
+                                <div class="alert alert-info py-2 px-3 small border-0 d-flex align-items-center">
+                                    <div class="spinner-border spinner-border-sm me-3" role="status"></div>
+                                    <span>AI is checking your document...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-12 mt-4">
                         <label class="form-label fw-bold text-dark"><i class="fa-solid fa-location-crosshairs me-2 text-success"></i> Your Live Location</label>
                         <p class="text-secondary small mb-3">Farmers will see your location on the map to contact you for nearby work.</p>
@@ -72,9 +121,12 @@
                     </div>
 
                     <div class="col-12 mt-5">
-                        <button type="submit" class="btn btn-primary-glow w-100 py-3">
+                        <button type="submit" id="submitBtn" class="btn btn-primary-glow w-100 py-3" {{ 'disabled' if not existing or not existing.is_verified }}>
                             <span><i class="fa-solid fa-check-circle me-2"></i> {{ 'Update Profile' if existing else 'Register Now' }}</span>
                         </button>
+                        {% if not existing or not existing.is_verified %}
+                        <p id="lockMsg" class="text-center text-muted small mt-2"><i class="fa-solid fa-lock me-1"></i> Verify your identity above to enable registration</p>
+                        {% endif %}
                     </div>
                 </div>
             </form>
@@ -86,8 +138,87 @@
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    function previewImage(input, previewId, placeholderId) {
+        const preview = document.getElementById(previewId);
+        const placeholder = document.getElementById(placeholderId);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+                if (placeholder) placeholder.classList.add('d-none');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    async function performAadhaarVerification() {
+        const fileInput = document.getElementById('aadhaarInput');
+        const statusDiv = document.getElementById('verifyStatus');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const lockMsg = document.getElementById('lockMsg');
+        const isVerifiedInput = document.getElementById('isVerifiedInput');
+
+        if (!fileInput.files || !fileInput.files[0]) {
+            alert("Please select your Aadhaar card photo first.");
+            return;
+        }
+
+        // Show loading
+        statusDiv.classList.remove('d-none');
+        verifyBtn.disabled = true;
+        statusDiv.innerHTML = `
+            <div class="alert alert-info py-2 px-3 small border-0 d-flex align-items-center">
+                <div class="spinner-border spinner-border-sm me-3" role="status"></div>
+                <span>AI is scanning your document for name: <strong>{{ current_user.name }}</strong>...</span>
+            </div>
+        `;
+
+        const formData = new FormData();
+        formData.append('aadhaar_photo', fileInput.files[0]);
+
+        try {
+            const response = await fetch("{{ url_for('labour.verify_aadhaar') }}", {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                statusDiv.innerHTML = `
+                    <div class="alert alert-success py-2 px-3 small border-0 d-flex align-items-center">
+                        <i class="fa-solid fa-circle-check me-3"></i>
+                        <span>Identity Verified! AI matched name: <strong>${result.extracted_name}</strong></span>
+                    </div>
+                `;
+                isVerifiedInput.value = 'true';
+                verifyBtn.innerHTML = '<i class="fa-solid fa-check-circle me-2"></i> Verified';
+                verifyBtn.className = 'btn btn-success w-100';
+                submitBtn.disabled = false;
+                if (lockMsg) lockMsg.classList.add('d-none');
+                fileInput.disabled = true;
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="alert alert-danger py-2 px-3 small border-0 d-flex align-items-center">
+                        <i class="fa-solid fa-circle-xmark me-3"></i>
+                        <span>Verification Failed. AI read: "${result.extracted_name}". Please ensure the name on card matches your profile name exactly.</span>
+                    </div>
+                `;
+                verifyBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error(error);
+            statusDiv.innerHTML = `
+                <div class="alert alert-danger py-2 px-3 small border-0">
+                    <span>Connection Error. Please try again.</span>
+                </div>
+            `;
+            verifyBtn.disabled = false;
+        }
+    }
+
     (function() {
-        // Use a function scope to avoid re-declaration issues on HTMX swaps
         const initMap = () => {
             const latInput = document.getElementById('latInput');
             const lngInput = document.getElementById('lngInput');
@@ -136,9 +267,7 @@
                 }
             });
 
-            // Re-invalidate size to ensure tiles are correct
             setTimeout(() => { map.invalidateSize(); }, 100);
-            setTimeout(() => { map.invalidateSize(); }, 500);
         };
 
         if (document.readyState === 'complete') {
@@ -146,8 +275,6 @@
         } else {
             window.addEventListener('load', initMap);
         }
-        
-        // HTMX compatibility
         document.body.addEventListener('htmx:afterOnLoad', initMap);
     })();
 </script>

@@ -16,6 +16,9 @@ class LabourWorker(db.Model):
     lng = db.Column(db.Float, nullable=False)
     
     is_available = db.Column(db.Boolean, default=True)
+    is_verified = db.Column(db.Boolean, default=False)
+    profile_pic = db.Column(db.String(255), nullable=True)
+    aadhaar_pic = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationship to user
@@ -30,5 +33,7 @@ class LabourWorker(db.Model):
             'phone': self.phone,
             'lat': self.lat,
             'lng': self.lng,
-            'is_available': self.is_available
+            'is_available': self.is_available,
+            'is_verified': self.is_verified,
+            'profile_pic': self.profile_pic
         }

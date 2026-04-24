@@ -166,24 +166,32 @@ if __name__ == '__main__':
             from sqlalchemy import text
             # 1. Product Image
             try:
-                db.session.execute(text("ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS image VARCHAR(255)"))
+                db.session.execute(text("ALTER TABLE shop_products ADD COLUMN image VARCHAR(255)"))
                 db.session.commit()
             except: db.session.rollback()
             # 2. Partner Name
             try:
-                db.session.execute(text("ALTER TABLE shops ADD COLUMN IF NOT EXISTS partner_name VARCHAR(150)"))
+                db.session.execute(text("ALTER TABLE shops ADD COLUMN partner_name VARCHAR(150)"))
                 db.session.commit()
             except: db.session.rollback()
             # 3. Partner Details
             try:
-                db.session.execute(text("ALTER TABLE shops ADD COLUMN IF NOT EXISTS partner_details TEXT"))
+                db.session.execute(text("ALTER TABLE shops ADD COLUMN partner_details TEXT"))
                 db.session.commit()
             except: db.session.rollback()
             # 4. Tracking ID
             try:
-                db.session.execute(text("ALTER TABLE customer_orders ADD COLUMN IF NOT EXISTS tracking_id VARCHAR(50)"))
+                db.session.execute(text("ALTER TABLE customer_orders ADD COLUMN tracking_id VARCHAR(50)"))
                 db.session.commit()
             except: db.session.rollback()
+
+            # 5. Labour Verification
+            for col, dtype in [("profile_pic", "VARCHAR(255)"), ("aadhaar_pic", "VARCHAR(255)"), ("is_verified", "BOOLEAN DEFAULT FALSE")]:
+                try:
+                    db.session.execute(text(f"ALTER TABLE labour_workers ADD COLUMN {col} {dtype}"))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
             
             print("[DB Migration] Schema Sync: Processed.")
             

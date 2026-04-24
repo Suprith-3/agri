@@ -10,8 +10,16 @@ class GroqClient:
     _session = None
 
     def __init__(self, api_key=None, model=None):
-        self.api_key = api_key or current_app.config.get('GROQ_API_KEY')
-        self.model = model or current_app.config.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
+        import os
+        # Use provided key, or try current_app config, or fallback to environment variable
+        # This prevents RuntimeError when instantiated outside app context at import time
+        try:
+            self.api_key = api_key or current_app.config.get('GROQ_API_KEY')
+            self.model = model or current_app.config.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
+        except RuntimeError:
+            self.api_key = api_key or os.getenv('GROQ_API_KEY')
+            self.model = model or os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile')
+            
         self.base_url = "https://api.groq.com/openai/v1/chat/completions"
         
         if GroqClient._session is None:

@@ -92,8 +92,9 @@
     <!-- Navigation (Static) -->
     <nav class="navbar navbar-expand-lg navbar-light sticky-top" hx-boost="true" hx-target="#main-content" hx-select="#main-content" aria-label="Main navigation">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}" hx-boost="false" aria-label="AgriSmart Home">
-                <i class="fa-solid fa-leaf" aria-hidden="true"></i> BHOOMITRA
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}" hx-boost="false" aria-label="AgriSmart Home">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" height="40" class="me-2 rounded shadow-sm"> 
+                <span>BHOOMITRA</span>
             </a>
             
             <div id="google_translate_element" class="ms-auto me-3"></div>

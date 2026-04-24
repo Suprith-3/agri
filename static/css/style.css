@@ -111,12 +111,6 @@ body::before {
   letter-spacing: -0.5px;
 }
 
-.navbar-brand::before {
-  content: '🌿 ';
-  -webkit-text-fill-color: initial;
-  font-size: 1.4rem;
-}
-
 .nav-link {
   color: #000000 !important;
   font-weight: 500;
