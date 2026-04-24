@@ -40,7 +40,7 @@ class GroqClient:
         # Determine model - use vision model if image is provided
         current_model = self.model
         if image_path:
-            current_model = "llama-3.2-11b-vision-preview"
+            current_model = "meta-llama/llama-4-scout-17b-16e-instruct"
             try:
                 with open(image_path, "rb") as image_file:
                     base64_image = base64.b64encode(image_file.read()).decode('utf-8')

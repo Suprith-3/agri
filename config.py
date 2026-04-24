@@ -74,6 +74,7 @@ class Config:
     RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
     TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
     TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+    GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
     
     # File Upload Config
     UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
