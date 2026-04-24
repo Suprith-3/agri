@@ -205,4 +205,38 @@ if __name__ == '__main__':
             print(f"[DB Warning] Quick Sync Disturbance: {str(e)}")
             print("[DB Orbit] Continuing in Resilient Mode.")
     
+# ---------------------------------------------------------
+# SECURITY HEADERS (Improve Lighthouse Best Practices Score)
+# ---------------------------------------------------------
+@app.after_request
+def add_security_headers(response):
+    # Content Security Policy (Allows necessary scripts and styles)
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdn.tailwindcss.com https://checkout.razorpay.com https://translate.google.com https://translate.googleapis.com; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://unpkg.com https://translate.googleapis.com; "
+        "img-src 'self' data: https:; "
+        "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; "
+        "frame-src 'self' https://checkout.razorpay.com; "
+        "connect-src 'self' https://api.razorpay.com https://lumberjack.razorpay.com https://translate.googleapis.com;"
+    )
+    
+    # HSTS (Forces HTTPS - 1 year)
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
+    # Clickjacking Protection
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    
+    # MIME Sniffing Protection
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    
+    # Referrer Policy
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    # Cross-Origin Opener Policy (COOP)
+    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+    
+    return response
+
+if __name__ == '__main__':
     app.run(debug=True, port=5000)
