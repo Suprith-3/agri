@@ -1,0 +1,26 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+database/
+*.db
+*.sqlite3
+
+# Uploads
+static/uploads/
+uploads/
+
+# OS generated files
+.DS_Store
+Thumbs.db

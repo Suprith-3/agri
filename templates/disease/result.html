@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Diagnosis Result{% endblock %}
+
+{% block extra_css %}
+<style>
+    .confidence-ring {
+        position: relative;
+        width: 120px;
+        height: 120px;
+    }
+    .confidence-ring svg {
+        width: 120px;
+        height: 120px;
+        transform: rotate(-90deg);
+    }
+    .confidence-ring circle {
+        fill: none;
+        stroke-width: 8;
+        stroke-linecap: round;
+    }
+    .confidence-ring .bg {
+        stroke: rgba(255, 255, 255, 0.1);
+    }
+    .confidence-ring .progress {
+        stroke: var(--primary-glow);
+        stroke-dasharray: 314;
+        stroke-dashoffset: 314;
+        transition: stroke-dashoffset 1.5s ease-out;
+        background: transparent !important;
+    }
+    .confidence-value {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: #fff;
+        font-family: var(--font-heading);
+    }
+    .ai-response-container {
+        position: relative;
+        padding-left: 2rem;
+        border-left: 2px solid var(--primary-glow);
+    }
+    .ai-response-container::before {
+        content: '"';
+        position: absolute;
+        top: -10px; left: -10px;
+        font-size: 4rem;
+        font-family: serif;
+        color: var(--primary-glow);
+        opacity: 0.3;
+        line-height: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-5" data-aos="fade-down">
+    <a href="{{ url_for('disease.detect') }}" class="btn btn-outline-glow rounded-circle me-4" style="width: 45px; height: 45px; padding: 0; display: flex; align-items: center; justify-content: center;">
+        <i class="fa-solid fa-arrow-left"></i>
+    </a>
+    <h2 class="fw-bold mb-0 gradient-text">Diagnosis Report</h2>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-lg-5" data-aos="fade-right">
+        <!-- Original Image -->
+        <div class="glass-card overflow-hidden h-100 p-0">
+            <div class="px-4 pt-4 pb-3">
+                <h6 class="fw-bold text-secondary text-uppercase small letter-spacing-1">Analyzed Specimen</h6>
+            </div>
+            <div class="px-4 pb-4">
+                <img src="{{ url_for('static', filename='uploads/' + detection.image_path) }}" class="img-fluid w-100 rounded-glow object-fit-cover shadow-lg" style="height: 350px; border: 1px solid var(--border-glass);" alt="Crop Image">
+            </div>
+            <div class="px-4 py-3 bg-glass-sm text-center">
+                <span class="text-secondary small">SCAN ID: #{{ detection.id }} • {{ detection.detected_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-7" data-aos="fade-left">
+        <!-- Result Details -->
+        <div class="glass-card p-4 p-md-5 h-100 d-flex flex-column justify-content-center" style="border-left: 5px solid {% if detection.disease_name == 'Healthy' %}#4CAF50{% else %}#F44336{% endif %} !important;">
+            
+            <h6 class="text-secondary text-uppercase fw-bold small mb-3 letter-spacing-1">Detected Condition</h6>
+            <h1 class="display-4 fw-bold {% if detection.disease_name == 'Healthy' %}text-success{% else %}text-danger{% endif %} mb-5 text-glow">
+                {{ detection.disease_name }}
+            </h1>
+            
+            <div class="d-flex align-items-center gap-4 mb-5">
+                <div class="confidence-ring">
+                    <svg>
+                        <circle class="bg" cx="60" cy="60" r="50"></circle>
+                        <circle class="progress" cx="60" cy="60" r="50" id="confidence-circle"></circle>
+                    </svg>
+                    <div class="confidence-value"><span data-count="{{ (detection.confidence * 100)|round }}">0</span>%</div>
+                </div>
+                <div>
+                    <h5 class="text-white fw-bold mb-1">AI Confidence</h5>
+                    <p class="text-secondary small mb-0">Analyzed for visual patterns with high precision.</p>
+                </div>
+            </div>
+
+            <div class="mt-auto d-flex flex-wrap gap-3">
+                <a href="#treatmentSection" class="btn btn-primary-glow px-5 flex-fill"><span>View Treatment Plan <i class="fa-solid fa-arrow-down ms-2"></i></span></a>
+                <a href="{{ url_for('chatbot.chat') }}?q=How%20to%20treat%20{{ detection.disease_name|urlencode }}" class="btn btn-outline-glow px-4 flex-fill"><i class="fa-solid fa-robot me-2"></i> Consult AgriBot</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Treatment Section -->
+<div id="treatmentSection" class="glass-card mb-5" data-aos="fade-up">
+    <div class="p-4 p-md-5 border-bottom border-glass d-flex align-items-center justify-content-between flex-wrap gap-3">
+         <h4 class="mb-0 fw-bold text-white"><i class="fa-solid fa-wand-magic-sparkles me-3 text-success"></i> Gemini AI Advisory Plan</h4>
+         <span class="badge-glow"><i class="fa-brands fa-google me-2"></i> Gemini 1.5 Flash</span>
+    </div>
+    <div class="p-4 p-md-5">
+        {% if detection.disease_name == 'Healthy' %}
+            <div class="text-center py-5" data-aos="zoom-in">
+                <div class="feature-icon-wrapper mx-auto mb-4" style="width: 100px; height: 100px; font-size: 3rem;">
+                    <i class="fa-solid fa-seedling text-success"></i>
+                </div>
+                <h3 class="fw-bold text-success display-6 mb-3">Your crop looks great!</h3>
+                <p class="text-secondary fs-5">Maintain current irrigation and fertilizing routines. The specimen shows no signs of active disease.</p>
+            </div>
+        {% elif detection.disease_name == 'Not Agriculture' %}
+            <div class="text-center py-5" data-aos="zoom-in">
+                <div class="feature-icon-wrapper mx-auto mb-4" style="width: 100px; height: 100px; font-size: 3rem; background: rgba(244, 67, 54, 0.1); border-color: rgba(244, 67, 54, 0.3);">
+                    <i class="fa-solid fa-circle-exclamation text-danger"></i>
+                </div>
+                <h3 class="fw-bold text-danger display-6 mb-3">Invalid Image</h3>
+                <p class="text-secondary fs-5 mx-auto" style="max-width: 500px;">The provided image does not appear to be agricultural in nature. Please capture or upload a clear photo of a crop, plant, or leaf.</p>
+                <a href="{{ url_for('disease.detect') }}" class="btn btn-outline-glow mt-4 px-5">Try Again</a>
+            </div>
+        {% else %}
+            <div class="ai-response-container" data-aos="fade-up">
+                <div class="text-white opacity-90 lh-lg" style="white-space: pre-wrap; font-size: 1.1rem; letter-spacing: 0.3px;">
+{{ detection.treatment }}
+                </div>
+            </div>
+            
+            <div class="mt-5 pt-4 border-top border-glass" data-aos="fade-up">
+                <div class="alert alert-warning border-0 d-flex align-items-start p-4 rounded-4 shadow-lg bg-opacity-10">
+                    <i class="fa-solid fa-triangle-exclamation fa-2x text-warning me-4 mt-1"></i>
+                    <div>
+                        <h6 class="fw-bold text-warning mb-2">Important Disclaimer</h6>
+                        <p class="mb-0 text-warning opacity-90 small">AI advisory is based on visual patterns analyzed from the uploaded image. We strongly recommend consulting qualified local agricultural experts or extension workers before applying heavy chemical treatments or making significant changes to your crop management.</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const circle = document.getElementById('confidence-circle');
+        const confidenceValue = {{ detection.confidence }};
+        const offset = 314 - (confidenceValue * 314);
+        
+        setTimeout(() => {
+            circle.style.strokeDashoffset = offset;
+        }, 500);
+    });
+</script>
+{% endblock %}

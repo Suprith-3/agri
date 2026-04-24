@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Classroom Navbar -->
+<div class="glass-card mb-4 p-0 overflow-hidden shadow-sm" data-aos="fade-down">
+    <div class="px-4 py-3 bg-success text-white d-flex align-items-center justify-content-between">
+        <h3 class="fw-bold mb-0">{{ course.title }}</h3>
+        <span class="badge bg-light text-success">{{ course.instructor_name }}</span>
+    </div>
+    <div class="d-flex justify-content-center border-bottom">
+        <a href="{{ url_for('education.course_detail', course_id=course.id) }}" class="classroom-nav-link active">Stream</a>
+        <a href="{{ url_for('education.classwork', course_id=course.id) }}" class="classroom-nav-link">Classwork</a>
+        <a href="#" class="classroom-nav-link text-muted">People</a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3" data-aos="fade-right">
+        <div class="glass-card p-4 mb-4 shadow-sm border-success">
+            <h6 class="fw-bold small text-uppercase text-secondary mb-3">Upcoming</h6>
+            <p class="small text-muted m-0">No work due soon!</p>
+        </div>
+    </div>
+
+    <!-- Stream -->
+    <div class="col-md-9" data-aos="fade-left">
+        <!-- Announce Something -->
+        <div class="glass-card p-3 mb-4 d-flex align-items-center gap-3 shadow-sm border-0 border-start border-success border-4">
+            <div class="avatar bg-success text-white">{{ current_user.name[0] }}</div>
+            <p class="mb-0 text-muted">Announce something to your class...</p>
+        </div>
+
+        <!-- Materials List -->
+        {% for item in stream_items %}
+        <div class="glass-card p-4 mb-3 shadow-sm border-0 d-flex gap-4 align-items-start">
+            <div class="icon-box bg-light text-success">
+                <i class="fa-solid {% if item.material_type == 'video' %}fa-video{% else %}fa-file-lines{% endif %} fa-lg"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between">
+                    <h6 class="fw-bold mb-1">{{ course.instructor_name }} posted a new material: {{ item.title }}</h6>
+                    <small class="text-muted">{{ item.created_at.strftime('%d %b') }}</small>
+                </div>
+                <p class="small text-muted mb-0">Topic: {{ item.material_type | capitalize }}</p>
+                <a href="{{ url_for('education.view_lesson', lesson_id=item.id) }}" class="stretched-link"></a>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted">No materials have been posted yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .classroom-nav-link { 
+        padding: 15px 30px; 
+        text-decoration: none; 
+        color: #555; 
+        font-weight: 600;
+        border-bottom: 3px solid transparent; 
+        transition: all 0.2s;
+    }
+    .classroom-nav-link:hover { color: #198754; }
+    .classroom-nav-link.active { border-bottom-color: #198754; color: #198754; }
+    .avatar { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .icon-box { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+</style>
+{% endblock %}

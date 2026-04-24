@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Add Listing{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        
+        <div class="d-flex justify-content-between align-items-end mb-5" data-aos="fade-down">
+            <div>
+                <h2 class="display-5 fw-bold gradient-text mb-2">Sell Your Product</h2>
+                <p class="text-secondary mb-0">Market your crops directly to buyers across the country.</p>
+            </div>
+            <a href="{{ url_for('marketplace.my_listings') }}" class="btn btn-outline-glow btn-sm px-4">My Sales</a>
+        </div>
+        
+        <div class="glass-card p-4 p-md-5 mb-5" data-aos="fade-up" data-aos-delay="100">
+            <form method="POST" action="{{ url_for('marketplace.add_listing') }}" enctype="multipart/form-data">
+                <input type="hidden" name="lat" id="latInput">
+                <input type="hidden" name="lng" id="lngInput">
+
+                <div class="row g-5">
+                    <!-- Left Column: Details -->
+                    <div class="col-lg-7">
+                        <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-circle-info me-3 text-success"></i> Basic Information</h5>
+                        <div class="row g-4 mb-5">
+                            <div class="col-12">
+                                <label class="form-label">Product/Crop Name</label>
+                                <input type="text" name="crop_name" class="form-control" required placeholder="ex. Basmati Rice, Alphonso Mango">
+                            </div>
+                            <!-- ... existing quantity/price ... -->
+                            <div class="col-md-6">
+                                <label class="form-label">Quantity</label>
+                                <div class="input-group">
+                                    <input type="number" name="quantity" class="form-control" required min="1" placeholder="500">
+                                    <select name="unit" class="form-select border-start-0" style="max-width: 120px;" required>
+                                        <option value="kg">kg</option>
+                                        <option value="Quintals">Quintals</option>
+                                        <option value="Tonnes">Tonnes</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">Price per Unit (₹)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-glass text-secondary">₹</span>
+                                    <input type="number" step="0.01" name="price" class="form-control border-start-0" required placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Description</label>
+                                <textarea name="description" class="form-control" rows="4" placeholder="Describe quality, variety, and harvest details..."></textarea>
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-location-dot me-3 text-success"></i> Pickup Location</h5>
+                        <p class="text-secondary small mb-3">Click on the map to pinpoint exactly where buyers should collect the harvest.</p>
+                        <div id="picker-map" class="notranslate" style="height: 350px; border-radius: 15px; margin-bottom: 2rem; border: 1px solid var(--border-glass); position: relative; z-index: 1; overflow: hidden;"></div>
+                        
+                        <div class="row g-4 mb-4">
+                             <div class="col-md-6">
+                                <label class="form-label text-dark">District</label>
+                                <input type="text" name="district" id="district" class="form-control" value="{{ current_user.district }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-dark">State</label>
+                                <input type="text" name="state" id="state" class="form-control" value="{{ current_user.state }}" required>
+                            </div>
+                             <div class="col-12">
+                                <label class="form-label text-dark">Contact Phone (for buyers)</label>
+                                <input type="text" name="contact_phone" class="form-control" value="{{ current_user.phone }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-dark">Available From</label>
+                                <input type="date" name="available_from" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-dark">Available Until</label>
+                                <input type="date" name="available_until" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Media -->
+                    <div class="col-lg-5">
+                         <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-image me-3 text-success"></i> Visuals</h5>
+                         
+                         <div class="mb-5">
+                            <div class="glass-card mb-3 p-2 bg-glass-sm border-dashed" style="border: 2px dashed var(--border-glass); cursor: pointer;" onclick="document.getElementById('imgInput').click()">
+                                <div id="imgPreviewContainer" class="text-center py-5">
+                                    <i class="fa-solid fa-cloud-arrow-up fa-3x text-secondary opacity-30 mb-3"></i>
+                                    <p class="text-secondary small mb-0">Click to upload crop image</p>
+                                </div>
+                                <img id="listingImgPreview" class="d-none w-100 rounded-glow object-fit-cover" style="height: 300px;">
+                            </div>
+                            <input type="file" name="image" id="imgInput" class="d-none" accept=".jpg,.jpeg,.png,.webp" required onchange="previewImage(this)">
+                            <p class="text-secondary small opacity-50"><i class="fa-solid fa-circle-info me-2"></i> High quality photos attract 3x more buyers.</p>
+                         </div>
+
+                         <div class="glass-card p-4 border-glow" style="background: rgba(76,175,80,0.05);">
+                            <div class="form-check form-switch fs-5">
+                                <input class="form-check-input" type="checkbox" role="switch" id="organicCheck" name="is_organic" value="true">
+                                 <label class="form-check-label text-dark fw-bold ms-3" for="organicCheck">100% Organic Produce</label>
+                            </div>
+                            <p class="text-secondary small mt-3 mb-0">Organic listings are highlighted with a special badge in the marketplace.</p>
+                         </div>
+
+                         <div class="mt-5 pt-3">
+                            <button type="submit" class="btn btn-primary-glow w-100 py-3">
+                                <span><i class="fa-solid fa-bullhorn me-2"></i> Publish Listing</span>
+                            </button>
+                            <p class="text-center text-secondary small mt-4">By publishing, you agree to our Marketplace Terms & Conditions.</p>
+                         </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const latInput = document.getElementById('latInput');
+        const lngInput = document.getElementById('lngInput');
+        
+        // Use a container check to avoid double-init
+        const mapContainer = document.getElementById('picker-map');
+        if (!mapContainer || mapContainer._leaflet_id) return;
+
+        const map = L.map('picker-map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([20.5937, 78.9629], 5);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        
+        // Manual Dark Mode Fix for tiles
+        map.on('tileload', function() {
+            var tp = mapContainer.querySelector('.leaflet-tile-pane');
+            if (tp) tp.style.filter = 'invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)';
+        });
+
+        let marker = null;
+
+        map.on('click', function(e) {
+            if (marker) map.removeLayer(marker);
+            marker = L.marker(e.latlng).addTo(map);
+            latInput.value = e.latlng.lat;
+            lngInput.value = e.latlng.lng;
+            
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${e.latlng.lat}&lon=${e.latlng.lng}`)
+                .then(r => r.json())
+                .then(data => {
+                    if(data.address) {
+                        if(data.address.state) document.getElementById('state').value = data.address.state;
+                        if(data.address.district || data.address.county) document.getElementById('district').value = data.address.district || data.address.county;
+                    }
+                });
+        });
+
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(p => {
+                map.setView([p.coords.latitude, p.coords.longitude], 12);
+                if (marker) map.removeLayer(marker);
+                marker = L.marker([p.coords.latitude, p.coords.longitude]).addTo(map);
+                latInput.value = p.coords.latitude;
+                lngInput.value = p.coords.longitude;
+            });
+        }
+
+        // AGGRESSIVE RE-LAYOUT TO FIX SCRAMBLED TILES
+        window.addEventListener('load', () => { setTimeout(() => { map.invalidateSize(); }, 500); });
+        document.body.addEventListener('htmx:afterOnLoad', () => { setTimeout(() => { map.invalidateSize(); }, 500); });
+    });
+
+    function previewImage(input) {
+        const preview = document.getElementById('listingImgPreview');
+        const container = document.getElementById('imgPreviewContainer');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+                container.classList.add('d-none');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}

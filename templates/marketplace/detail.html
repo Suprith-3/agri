@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}{{ listing.crop_name }} - Details{% endblock %}
+
+{% block content %}
+<div class="mb-5" data-aos="fade-down">
+    <a href="{{ url_for('marketplace.browse') }}" class="btn btn-outline-glow btn-sm px-4 rounded-pill"><i class="fa-solid fa-arrow-left me-2"></i> Back to Market</a>
+</div>
+
+<div class="row g-5 mb-5">
+    <div class="col-lg-6" data-aos="fade-right">
+        <div class="glass-card overflow-hidden h-100 p-0 border-glow">
+            {% if listing.image_path %}
+                <img src="{{ url_for('static', filename='uploads/' + listing.image_path) }}" class="w-100 h-100 object-fit-cover shadow-lg" style="min-height: 500px;" alt="{{ listing.crop_name }}">
+            {% else %}
+                <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-glass-sm text-secondary p-5" style="min-height: 500px;">
+                    <i class="fa-solid fa-image fa-6x mb-4 opacity-20"></i>
+                    <span class="fs-5 fw-bold opacity-50">No Image Provided</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-lg-6" data-aos="fade-left">
+        <div class="glass-card p-4 p-md-5 h-100 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h1 class="fw-bold text-white mb-0 display-5 gradient-text">{{ listing.crop_name }}</h1>
+                {% if listing.is_organic %}
+                    <span class="badge-glow py-2 px-3"><i class="fa-solid fa-leaf me-2"></i>Organic</span>
+                {% endif %}
+            </div>
+            
+            <p class="text-secondary fs-5 mb-5"><i class="fa-solid fa-location-dot text-success me-2 opacity-70"></i>{{ listing.district }}, {{ listing.state }}</p>
+            
+            <div class="bg-glass-sm p-4 rounded-glow mb-5 border border-glass shadow-lg">
+                <div class="row text-center g-0">
+                    <div class="col-6 border-end border-glass">
+                        <h6 class="text-secondary text-uppercase small fw-bold mb-2 letter-spacing-1">Price</h6>
+                        <h2 class="fw-bold text-success mb-0 text-glow">₹{{ listing.price }}</h2>
+                        <small class="text-secondary opacity-75">per {{ listing.unit }}</small>
+                    </div>
+                    <div class="col-6">
+                        <h6 class="text-secondary text-uppercase small fw-bold mb-2 letter-spacing-1">Available Qty</h6>
+                        <h2 class="fw-bold text-white mb-0">{{ listing.quantity }}</h2>
+                        <small class="text-secondary opacity-75">{{ listing.unit }}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-5 flex-grow-1">
+                <h5 class="fw-bold mb-3 text-white border-bottom border-glass pb-3">Description</h5>
+                <p class="text-secondary lh-lg fs-5">{{ listing.description or "No standard description provided by the seller." }}</p>
+                
+                <div class="row g-4 mt-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="feature-icon-wrapper p-0 m-0" style="width: 40px; height: 40px; font-size: 1rem; background: rgba(76,175,80,0.1);">
+                                <i class="fa-regular fa-calendar text-success"></i>
+                            </div>
+                            <div class="small">
+                                <div class="text-secondary opacity-50 fw-bold text-uppercase letter-spacing-1" style="font-size: 0.65rem;">Harvest Window</div>
+                                <div class="text-white fw-bold">{{ listing.available_from.strftime('%b %d, %Y') }} - {{ listing.available_until.strftime('%b %d, %Y') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="feature-icon-wrapper p-0 m-0" style="width: 40px; height: 40px; font-size: 1rem; background: rgba(76,175,80,0.1);">
+                                <i class="fa-solid fa-user-tag text-success"></i>
+                            </div>
+                            <div class="small">
+                                <div class="text-secondary opacity-50 fw-bold text-uppercase letter-spacing-1" style="font-size: 0.65rem;">Seller ID</div>
+                                <div class="text-white fw-bold">Farmer #{{ "%05d"|format(listing.farmer_id) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if current_user.is_authenticated %}
+            <div class="d-flex gap-3 mt-auto">
+                <a href="tel:{{ listing.contact_phone }}" class="btn btn-primary-glow flex-fill py-3">
+                    <span><i class="fa-solid fa-phone me-2"></i> Call Seller</span>
+                </a>
+                <a href="https://wa.me/91{{ listing.contact_phone[-10:] }}?text=Hi,%20I%20saw%20your%20listing%20for%20{{ listing.crop_name|urlencode }}%20on%20AgriSmart." target="_blank" class="btn btn-outline-glow flex-fill py-3" style="border-color: #25D366; color: #25D366;">
+                    <i class="fa-brands fa-whatsapp me-2"></i> WhatsApp
+                </a>
+            </div>
+            {% else %}
+            <div class="glass-card p-4 border-glow text-center mt-auto" style="background: rgba(255,179,0,0.05);">
+                <i class="fa-solid fa-lock fa-2x mb-3 text-warning opacity-50"></i>
+                <h6 class="fw-bold text-white mb-3">Login required to view contact</h6>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary-glow btn-sm px-4"><span>Sign In Now</span></a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if related %}
+<div class="mt-5 pt-5" data-aos="fade-up">
+    <h4 class="fw-bold text-white mb-4"><i class="fa-solid fa-tags text-success me-2 opacity-50"></i> More from {{ listing.state }}</h4>
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+        {% for post in related %}
+        <div class="col" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 100 }}">
+            <a href="{{ url_for('marketplace.detail', id=post.id) }}" class="text-decoration-none">
+                <div class="glass-card p-3 h-100 hover-glow border-glass">
+                    <div class="d-flex gap-4 align-items-center">
+                        {% if post.image_path %}
+                            <img src="{{ url_for('static', filename='uploads/' + post.image_path) }}" width="80" height="80" class="rounded-glow object-fit-cover shadow-lg border border-glass">
+                        {% else %}
+                            <div class="bg-glass-sm rounded-glow d-flex align-items-center justify-content-center text-secondary" style="width:80px;height:80px; border: 1px solid var(--border-glass);"><i class="fa-solid fa-leaf"></i></div>
+                        {% endif %}
+                        <div>
+                            <h6 class="fw-bold text-white mb-2">{{ post.crop_name }}</h6>
+                            <div class="text-success fw-bold fs-5">₹{{ post.price }}<small class="text-secondary ms-1 small fw-normal">/{{ post.unit }}</small></div>
+                            <div class="text-secondary small mt-1 opacity-70"><i class="fa-solid fa-location-dot me-1"></i>{{ post.district }}</div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

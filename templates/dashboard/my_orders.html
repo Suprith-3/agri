@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}My Orders - BHOOMITRA{% endblock %}
+
+{% block content %}
+<div class="row mb-5" data-aos="fade-down">
+    <div class="col-12">
+        <h2 class="fw-bold mb-1 gradient-text"><i class="fa-solid fa-box-open me-3"></i>My Orders</h2>
+        <p class="text-secondary mb-0">Track and manage your recent purchases from AgriSmart Partners.</p>
+    </div>
+</div>
+
+{% if orders %}
+    <div class="row g-4">
+        {% for order in orders %}
+        <div class="col-12" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 50 }}">
+            <div class="glass-card p-0 overflow-hidden border-primary border-opacity-10 shadow-sm">
+                <!-- Order Header -->
+                <div class="bg-glass-sm p-3 border-bottom border-glass d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="d-flex gap-4">
+                        <div>
+                            <div class="small text-secondary text-uppercase fw-bold letter-spacing-1">Order Placed</div>
+                            <div class="text-dark">{{ order.created_at.strftime('%d %B, %Y') }}</div>
+                        </div>
+                        <div>
+                            <div class="small text-secondary text-uppercase fw-bold letter-spacing-1">Total</div>
+                            <div class="text-dark fw-bold">₹{{ order.total_amount }}</div>
+                        </div>
+                        <div>
+                            <div class="small text-secondary text-uppercase fw-bold letter-spacing-1">Ship To</div>
+                            <div class="text-dark truncate-text" style="max-width: 150px;">{{ order.address }}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="small text-secondary text-uppercase fw-bold letter-spacing-1 text-end">Order #{{ order.id }}</div>
+                        <a href="#" class="small text-primary fw-bold text-decoration-none">View order details</a>
+                    </div>
+                </div>
+
+                <!-- Order Content -->
+                <div class="p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="fw-bold text-dark mb-3">
+                                {% if order.status == 'Pending' %}
+                                    <span class="text-warning"><i class="fa-solid fa-clock me-2"></i>Processing Order...</span>
+                                {% elif order.status == 'Accepted' %}
+                                    <span class="text-info"><i class="fa-solid fa-truck-fast me-2"></i>Order Accepted & Ready for Shipping</span>
+                                {% elif order.status == 'Shipped' %}
+                                    <span class="text-primary"><i class="fa-solid fa-route me-2"></i>On its way to you!</span>
+                                {% elif order.status == 'Delivered' %}
+                                    <span class="text-success"><i class="fa-solid fa-circle-check me-2"></i>Delivered</span>
+                                {% else %}
+                                    <span class="text-secondary">{{ order.status }}</span>
+                                {% endif %}
+                            </h5>
+                            
+                            <p class="text-secondary small mb-4">You will receive a notification once the status changes.</p>
+
+                            {% if order.tracking_id %}
+                            <div class="premium-notice p-3 rounded bg-primary bg-opacity-10 border border-primary border-opacity-25 d-inline-block">
+                                <div class="small text-primary fw-bold mb-1"><i class="fa-solid fa-barcode me-2"></i>TRACKING ID</div>
+                                <div class="fw-bold text-dark letter-spacing-1 fs-5">{{ order.tracking_id }}</div>
+                            </div>
+                            {% else %}
+                            <div class="p-3 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-25 d-inline-block">
+                                <div class="small text-secondary fw-bold"><i class="fa-solid fa-hourglass-start me-2"></i>Tracking ID usually appears within 24 hours</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4 text-md-end mt-4 mt-md-0">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary-glow btn-sm py-2">Track Package</button>
+                                <button class="btn btn-outline-glow btn-sm py-2">Help with Order</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress Line (Amazon Style) -->
+                <div class="px-4 pb-4">
+                    <div class="tracking-timeline d-flex justify-content-between position-relative">
+                        <div class="timeline-step {% if order.status in ['Pending', 'Confirmed', 'Accepted', 'Shipped', 'Delivered'] %}active{% endif %}">
+                            <div class="step-icon"><i class="fa-solid fa-check"></i></div>
+                            <div class="step-label">Ordered</div>
+                        </div>
+                        <div class="timeline-step {% if order.status in ['Accepted', 'Shipped', 'Delivered'] %}active{% endif %}">
+                            <div class="step-icon"><i class="fa-solid fa-store-check"></i></div>
+                            <div class="step-label">Accepted</div>
+                        </div>
+                        <div class="timeline-step {% if order.status in ['Shipped', 'Delivered'] %}active{% endif %}">
+                            <div class="step-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                            <div class="step-label">Shipped</div>
+                        </div>
+                        <div class="timeline-step {% if order.status == 'Delivered' %}active{% endif %}">
+                            <div class="step-icon"><i class="fa-solid fa-house-chimney-check"></i></div>
+                            <div class="step-label">Delivered</div>
+                        </div>
+                        <div class="timeline-progress"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="glass-card py-5 text-center" data-aos="zoom-in">
+        <div class="mx-auto mb-4" style="width: 100px; height: 100px; background: rgba(0,0,0,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-basket-shopping fa-3x text-secondary opacity-50"></i>
+        </div>
+        <h4 class="fw-bold text-dark">No orders yet</h4>
+        <p class="text-secondary mb-4">Your purchase history will appear here once you buy something from our shops.</p>
+        <a href="{{ url_for('shop.public_shop') }}" class="btn btn-primary-glow px-5 py-2">Start Shopping</a>
+    </div>
+{% endif %}
+
+<style>
+.tracking-timeline { padding-top: 20px; }
+.timeline-progress { position: absolute; top: 35px; left: 10%; right: 10%; height: 2px; background: rgba(0,0,0,0.1); z-index: 1; }
+.timeline-step { position: relative; z-index: 2; text-align: center; width: 60px; }
+.step-icon { width: 30px; height: 30px; border-radius: 50%; background: #fff; border: 2px solid rgba(0,0,0,0.1); margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #ccc; transition: all 0.3s ease; }
+.step-label { font-size: 0.7rem; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.timeline-step.active .step-icon { background: var(--primary-glow); border-color: var(--primary-glow); color: #fff; box-shadow: 0 0 15px rgba(33, 150, 243, 0.4); }
+.timeline-step.active .step-label { color: var(--primary-glow); }
+</style>
+{% endblock %}

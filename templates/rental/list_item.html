@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7" data-aos="fade-up">
+        <div class="glass-card p-5 shadow-lg border-primary bg-white text-dark">
+            <h2 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-tractor text-primary"></i> List Equipment for Rent</h2>
+            
+            <form action="{{ url_for('rental.list_item') }}" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark">Equipment Name</label>
+                    <input type="text" name="name" class="form-control text-dark border-dark" style="background: #fff; color: #000 !important;" placeholder="e.g. Mahindra 575 DI Tractor" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-dark">Daily Rental Rate (₹)</label>
+                        <input type="number" name="daily_rate" class="form-control text-dark border-dark" style="background: #fff; color: #000 !important;" placeholder="e.g. 2000" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-dark">Hourly Rate (₹)</label>
+                        <input type="number" name="hourly_rate" class="form-control text-dark border-dark" style="background: #fff; color: #000 !important;" placeholder="e.g. 400" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark">Category</label>
+                    <select name="category" class="form-select text-dark border-dark" style="background: #fff;">
+                        <option value="Machinery">Tractors & Heavy Machinery</option>
+                        <option value="Drones">Drones & Hi-Tech Sensors</option>
+                        <option value="Land">Vacant Farming Land</option>
+                        <option value="Hand Tools">Small Hand Tools</option>
+                        <option value="Irrigation">Pump Sets & Irrigation</option>
+                        <option value="Processing">Harvesting & Processing</option>
+                        <option value="Storage">Cold Storage / Silo Space</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark">Upload Equipment Photo</label>
+                    <div class="upload-box border-dashed rounded p-3 text-center cursor-pointer" onclick="this.querySelector('input').click()" style="background: #f8f9fa; border: 2px dashed #000;">
+                        <i class="fa-solid fa-camera fa-2x text-primary mb-2"></i>
+                        <p class="small text-dark fw-bold mb-0">Select photo of the item</p>
+                        <input type="file" name="item_photo" class="d-none" onchange="previewImg(this, 'item-preview')" required>
+                        <img id="item-preview" class="mt-2 rounded shadow-sm d-none" style="height: 120px; width: auto;">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-dark">Equipment Description</label>
+                    <textarea name="description" class="form-control text-dark border-dark" style="background: #fff; color: #000 !important;" rows="3" placeholder="Detail the condition..."></textarea>
+                </div>
+
+<script>
+function previewImg(input, targetId) {
+    const preview = document.getElementById(targetId);
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.classList.remove('d-none');
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+
+                <div class="alert alert-info small border-0 shadow-sm mb-4">
+                    <i class="fa-solid fa-circle-info"></i> Your contact information will only be shared with verified renters who book your equipment.
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow">
+                    Launch Listing
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass-card { background: #ffffff !important; }
+    .text-dark { color: #000000 !important; }
+    .form-control, .form-select { border: 1px solid #000 !important; font-weight: bold; }
+</style>
+{% endblock %}

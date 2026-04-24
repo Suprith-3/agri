@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}AgriBot Chat{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: 600px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: var(--radius-lg);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    /* Scrollbar for chat */
+    .chat-messages::-webkit-scrollbar { width: 5px; }
+    .chat-messages::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages::-webkit-scrollbar-thumb { background: rgba(76, 175, 80, 0.2); border-radius: 10px; }
+    
+    .chat-input-area {
+        background: rgba(255, 255, 255, 0.03);
+        border-top: 1px solid var(--border-glass);
+        padding: 1.5rem 2rem;
+    }
+    .quick-chip {
+        cursor: pointer;
+        white-space: nowrap;
+        background: rgba(76, 175, 80, 0.1);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+        color: var(--accent);
+        padding: 0.5rem 1.2rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+    .quick-chip:hover {
+        background: rgba(76, 175, 80, 0.2);
+        border-color: var(--primary-glow);
+        transform: translateY(-2px);
+    }
+    .chat-bubble-bot strong {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+        color: var(--primary-glow);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="display-5 fw-bold gradient-text mb-2">AgriBot Assistant</h2>
+            <p class="text-secondary">AI-powered farming expertise at your fingertips</p>
+        </div>
+        
+        <div class="chat-container" data-aos="zoom-in" data-aos-delay="100">
+            <!-- Header -->
+            <div class="p-4 border-bottom border-glass d-flex justify-content-between align-items-center bg-glass-sm">
+                <div class="d-flex align-items-center">
+                    <div class="feature-icon-wrapper me-3 mb-0" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold text-dark">AgriBot v1.5</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success rounded-circle p-1" style="width:8px;height:8px;"></span>
+                            <small class="text-secondary small">Online • Gemini Engine</small>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-outline-glow btn-sm px-3" id="clearChatBtn"><i class="fa-solid fa-trash-can me-2"></i>Clear Chat</button>
+            </div>
+            
+            <!-- Chat Body -->
+            <div class="chat-messages" id="chatWindow">
+                <!-- Welcome Message -->
+                <div class="chat-bubble-bot" data-aos="fade-right">
+                    <strong>AgriBot</strong>
+                    <p class="mb-0 mt-1">Namaste! I am your AI farming expert. I can help you with crop diseases, fertilizers, market trends, and govt schemes. How can I assist your farm today?</p>
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="chat-input-area">
+                <!-- Quick Prompts -->
+                <div class="mb-4 d-flex gap-2 overflow-auto pb-2" style="scrollbar-width: none;">
+                    <div class="quick-chip quick-btn">Best crops for monsoon?</div>
+                    <div class="quick-chip quick-btn">Details on PM-Kisan scheme</div>
+                    <div class="quick-chip quick-btn">Organic fertilizer mixing</div>
+                    <div class="quick-chip quick-btn">Tomato price in Maharashtra</div>
+                    <div class="quick-chip quick-btn">How to treat Rice Blast?</div>
+                </div>
+                
+                <form id="chatForm">
+                    <div class="input-group input-group-lg bg-glass-sm rounded-pill p-1 border border-glass">
+                        <input type="text" id="userInput" class="form-control border-0 bg-transparent shadow-none text-dark px-4" placeholder="Type your farming question here..." required autocomplete="off">
+                        <button class="btn btn-primary-glow rounded-pill px-4" type="submit">
+                            <span><i class="fa-solid fa-paper-plane"></i></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatWindow = document.getElementById('chatWindow');
+    const chatForm = document.getElementById('chatForm');
+    const userInput = document.getElementById('userInput');
+    const clearBtn = document.getElementById('clearChatBtn');
+    
+    // Check URL params for prefilled query
+    const urlParams = new URLSearchParams(window.location.search);
+    const prefillQuery = urlParams.get('q');
+    if(prefillQuery) {
+        userInput.value = prefillQuery;
+        // Optional auto-submit
+        setTimeout(() => chatForm.dispatchEvent(new Event('submit')), 800);
+    }
+    
+    function appendMessage(text, sender) {
+        const div = document.createElement('div');
+        div.className = sender === 'bot' ? 'chat-bubble-bot' : 'chat-bubble-user';
+        
+        // Basic Markdown parsing
+        let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formattedText = formattedText.replace(/\n/g, '<br>');
+        
+        if (sender === 'bot') {
+            div.innerHTML = `<strong>AgriBot</strong><div class="mt-1 text-dark">${formattedText}</div>`;
+        } else {
+            div.innerHTML = `<div class="mt-1 text-dark">${formattedText}</div>`;
+        }
+        
+        chatWindow.appendChild(div);
+        chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+    }
+    
+    function showTyping() {
+        const id = 'typing-' + Date.now();
+        const div = document.createElement('div');
+        div.className = `chat-bubble-bot`;
+        div.id = id;
+        div.innerHTML = `<strong>AgriBot</strong><div class="typing-dots mt-2"><span></span><span></span><span></span></div>`;
+        chatWindow.appendChild(div);
+        chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+        return id;
+    }
+    
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const text = userInput.value.trim();
+        if(!text) return;
+        
+        appendMessage(text, 'user');
+        userInput.value = '';
+        
+        const typingId = showTyping();
+        
+        try {
+            const response = await fetch("{{ url_for('chatbot.ask') }}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await response.json();
+            
+            document.getElementById(typingId).remove();
+            
+            if(data.status === 'success') {
+                appendMessage(data.response, 'bot');
+            } else {
+                appendMessage(`Error: ${data.message}`, 'bot');
+            }
+        } catch(err) {
+            document.getElementById(typingId).remove();
+            appendMessage("Internet error communicating with AI.", 'bot');
+        }
+    });
+    
+    clearBtn.addEventListener('click', async function() {
+        await fetch("{{ url_for('chatbot.clear') }}", { method: 'POST' });
+        chatWindow.innerHTML = `<div class="chat-bubble-bot"><strong>AgriBot</strong><p class="mb-0 mt-1">Chat history cleared. How can I assist you now?</p></div>`;
+    });
+    
+    document.querySelectorAll('.quick-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            userInput.value = this.innerText;
+            chatForm.dispatchEvent(new Event('submit'));
+        });
+    });
+});
+</script>
+{% endblock %}

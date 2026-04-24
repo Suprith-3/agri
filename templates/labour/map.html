@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Find Local Labour{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #labour-map {
+        height: calc(100vh - 250px);
+        min-height: 550px;
+        border-radius: 20px;
+        border: 1px solid var(--border-glass);
+        box-shadow: var(--shadow-green);
+    }
+    .labour-popup {
+        width: 220px;
+        color: white;
+    }
+    .near-me-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-5" data-aos="fade-down">
+    <div class="col-lg-8">
+        <h2 class="display-5 fw-bold gradient-text mb-2">Find Local Labour</h2>
+        <p class="text-secondary">Search for available farm labourers by their live location and contact them directly.</p>
+    </div>
+    <div class="col-lg-4 text-lg-end d-flex align-items-end justify-content-lg-end gap-3">
+        <a href="{{ url_for('labour.register_labour') }}" class="btn btn-primary-glow btn-sm"><span>Register as Labour</span></a>
+    </div>
+</div>
+
+<div class="position-relative" data-aos="zoom-in">
+    <button id="findWorkers" class="btn btn-primary-glow near-me-btn">
+        <span><i class="fa-solid fa-people-arrows me-2"></i> Find Nearby Labour</span>
+    </button>
+    <div id="labour-map"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    (function() {
+        var mapInstance = null;
+        var markers = L.layerGroup();
+        var circleOverlay = null;
+
+        var initMap = function() {
+            var mapEl = document.getElementById('labour-map');
+            if (!mapEl || mapInstance) return;
+
+            mapInstance = L.map('labour-map').setView([20.5937, 78.9629], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(mapInstance);
+
+            markers.addTo(mapInstance);
+            
+            setTimeout(function() {
+                var tp = document.querySelector('.leaflet-tile-pane');
+                if (tp) tp.style.filter = 'invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)';
+            }, 100);
+        };
+
+        var findLabour = function() {
+            var btn = document.getElementById('findWorkers');
+            if (!btn) return;
+            
+            btn.innerHTML = '<span><i class="fa-solid fa-satellite-dish fa-spin me-2"></i> Locating...</span>';
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    var uLat = pos.coords.latitude;
+                    var uLng = pos.coords.longitude;
+                    var rad = 50000; // 50km
+
+                    markers.clearLayers();
+                    if (circleOverlay) mapInstance.removeLayer(circleOverlay);
+
+                    // User Marker
+                    L.circleMarker([uLat, uLng], {
+                        radius: 8, fillColor: "#00BCD4", color: "#fff", weight: 2, opacity: 1, fillOpacity: 1
+                    }).addTo(markers).bindPopup("<b>Your Farm Location</b>").openPopup();
+
+                    // 50km Radius
+                    circleOverlay = L.circle([uLat, uLng], {
+                        radius: rad, color: '#4CAF50', fillColor: '#4CAF50', fillOpacity: 0.1, weight: 1.5
+                    }).addTo(mapInstance);
+
+                    var workers = {{ map_data | tojson | safe }};
+                    var count = 0;
+
+                    workers.forEach(function(w) {
+                        var wPos = L.latLng(w.lat, w.lng);
+                        var uPos = L.latLng(uLat, uLng);
+                        var dist = uPos.distanceTo(wPos);
+
+                        if (dist <= rad) {
+                            var content = `
+                                <div class="labour-popup">
+                                    <h6 class="fw-bold mb-1 text-success">${w.name}</h6>
+                                    <p class="small mb-1 text-white"><i class="fa-solid fa-briefcase me-2"></i>${w.work_type}</p>
+                                    <p class="small text-secondary mb-3"><i class="fa-solid fa-map-pin me-1"></i> ${(dist/1000).toFixed(1)} km from your farm</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="text-secondary small">Wage:</span>
+                                        <span class="fw-bold">₹${w.daily_wage}/day</span>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="tel:${w.phone}" class="btn btn-sm btn-success flex-fill px-2 py-2"><i class="fa-solid fa-phone"></i> Call</a>
+                                        <a href="https://wa.me/91${w.phone.slice(-10)}" target="_blank" class="btn btn-sm btn-outline-success flex-fill px-2 py-2"><i class="fa-brands fa-whatsapp"></i> Chat</a>
+                                    </div>
+                                </div>
+                            `;
+                            L.marker([w.lat, w.lng]).addTo(markers).bindPopup(content);
+                            count++;
+                        }
+                    });
+
+                    mapInstance.flyTo([uLat, uLng], 10.5, { duration: 2 });
+                    btn.innerHTML = `<span><i class="fa-solid fa-users me-2"></i> ${count} Workers Near You</span>`;
+                    
+                }, function() {
+                    alert("Location access denied. Manual search enabled.");
+                    btn.innerHTML = '<span><i class="fa-solid fa-people-arrows me-2"></i> Find Nearby Labour</span>';
+                });
+            }
+        };
+
+        initMap();
+        document.getElementById('findWorkers').addEventListener('click', findLabour);
+        
+        document.body.addEventListener('htmx:afterOnLoad', function() {
+            if (!document.getElementById('labour-map')) {
+                mapInstance = null;
+            } else {
+                initMap();
+            }
+        });
+    })();
+</script>
+{% endblock %}

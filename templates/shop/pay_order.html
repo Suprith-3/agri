@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Complete Payment{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="glass-card p-5 d-inline-block" style="max-width: 500px;" data-aos="zoom-in">
+        <i class="fa-solid fa-spinner fa-spin display-1 text-success mb-4"></i>
+        <h3 class="fw-bold text-dark">Initializing Secure Payment</h3>
+        <p class="text-secondary mb-4">Please do not refresh the page. We are connecting to the secure gateway for your order of ₹{{ order.total_amount }}.</p>
+        
+        <button id="pay-btn" class="btn btn-primary-glow btn-lg w-100">
+            <span>Pay Now <i class="fa-solid fa-credit-card ms-2"></i></span>
+        </button>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const initPayment = () => {
+            const payBtn = document.getElementById('pay-btn');
+            if (!payBtn || payBtn._initialized) return;
+            payBtn._initialized = true;
+
+            const options = {
+                "key": "{{ key }}",
+                "amount": "{{ r_order.amount }}",
+                "currency": "INR",
+                "name": "AgriSmart Shop",
+                "description": "Payment for Order #{{ order.id }}",
+                "order_id": "{{ r_order.id }}",
+                "handler": function (response){
+                    fetch("{{ url_for('shop.verify_order_payment') }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                            order_idx: "{{ order.id }}"
+                        })
+                    }).then(res => res.json()).then(data => {
+                        if(data.status === 'success') {
+                            window.location.href = "{{ url_for('dashboard.home') }}";
+                        } else {
+                            alert("Payment verification failed.");
+                        }
+                    });
+                },
+                "prefill": {
+                    "name": "{{ current_user.username }}",
+                    "email": "{{ current_user.email if current_user.email else '' }}",
+                    "contact": "{{ current_user.phone }}"
+                },
+                "theme": { "color": "#4CAF50" }
+            };
+
+            if (typeof Razorpay === 'undefined') {
+                console.error("Razorpay SDK not loaded");
+                return;
+            }
+
+            const rzp = new Razorpay(options);
+            payBtn.onclick = function(e){
+                rzp.open();
+                e.preventDefault();
+            }
+
+            // Auto open for better UX on redirect
+            setTimeout(() => { 
+                if (!document.querySelector('.razorpay-container')) {
+                    rzp.open(); 
+                }
+            }, 1000);
+        };
+
+        if (document.readyState === 'complete') {
+            initPayment();
+        } else {
+            window.addEventListener('load', initPayment);
+        }
+        document.body.addEventListener('htmx:afterOnLoad', initPayment);
+    })();
+</script>
+{% endblock %}

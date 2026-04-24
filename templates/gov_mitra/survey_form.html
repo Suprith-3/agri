@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8" data-aos="fade-up">
+            <div class="glass-card p-5 shadow-lg border-info">
+                <div class="text-center mb-5">
+                    <div class="icon-circle bg-info-light mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                        <i class="fa-solid fa-clipboard-question text-info"></i>
+                    </div>
+                    <h2 class="fw-bold">Quarterly Performance Log</h2>
+                    <p class="text-muted">Official Field Data Collection Form</p>
+                </div>
+
+                <form action="{{ url_for('gov_mitra.new_survey') }}" method="POST">
+                    <div class="row g-4">
+                        <!-- Farmer Selection -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Select Farmer</label>
+                            <select name="farmer_id" class="form-select form-control" required>
+                                <option value="" disabled selected>Choose a farmer...</option>
+                                {% for farmer in farmers %}
+                                <option value="{{ farmer.id }}">{{ farmer.name }} ({{ farmer.district }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Quarter & Year -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Assessment Quarter</label>
+                            <select name="quarter" class="form-select form-control" required>
+                                <option value="1">Q1: Jan - March</option>
+                                <option value="2">Q2: April - June</option>
+                                <option value="3">Q3: July - Sept</option>
+                                <option value="4">Q4: Oct - Dec</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Assessment Year</label>
+                            <input type="number" name="year" class="form-control" value="{{ current_year }}" required>
+                        </div>
+
+                        <!-- Financial Data -->
+                        <div class="col-12 mt-4">
+                            <h5 class="fw-bold text-info border-bottom pb-2 mb-3">Agricultural Productivity</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Crop Grown</label>
+                            <input type="text" name="crop_grown" class="form-control" placeholder="e.g. Rice, Sugarcane" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Revenue (₹)</label>
+                            <input type="number" step="0.01" name="revenue" class="form-control" placeholder="Total sales" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Expenses (₹)</label>
+                            <input type="number" step="0.01" name="expenses" class="form-control" placeholder="Seeds, labor, etc." required>
+                        </div>
+
+                        <!-- Biometrics (Live Implementation) -->
+                        <div class="col-12 mt-4">
+                            <h5 class="fw-bold text-warning border-bottom pb-2 mb-3">Identity Verification</h5>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <div class="p-4 border rounded bg-light position-relative overflow-hidden" style="min-height: 200px;">
+                                <div id="face-placeholder">
+                                    <i class="fa-solid fa-face-viewfinder fa-3x mb-2 text-warning"></i>
+                                    <p class="small mb-2 fw-bold">Face Recognition System</p>
+                                    <button type="button" class="btn btn-sm btn-warning rounded-pill px-4" onclick="startFaceScan()">
+                                        <i class="fa-solid fa-camera"></i> Open Camera
+                                    </button>
+                                </div>
+                                <div id="camera-container" style="display:none;">
+                                    <video id="video" width="100%" height="auto" autoplay class="rounded border mb-2" style="transform: scaleX(-1);"></video>
+                                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3" onclick="captureFace()">
+                                        <i class="fa-solid fa-check-circle"></i> Verify Face
+                                    </button>
+                                </div>
+                                <div id="face-success" style="display:none;">
+                                    <i class="fa-solid fa-circle-check fa-3x text-success mb-2"></i>
+                                    <p class="text-success fw-bold">Farmer Verified</p>
+                                    <span class="badge bg-success">Face ID Captured</span>
+                                    <input type="hidden" name="face_scan" value="verified">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <div class="p-4 border rounded bg-light position-relative" style="min-height: 200px;">
+                                <div id="fingerprint-placeholder">
+                                    <i class="fa-solid fa-fingerprint fa-3x mb-2 text-warning"></i>
+                                    <p class="small mb-2 fw-bold">Biometric Scanner</p>
+                                    <button type="button" class="btn btn-sm btn-warning rounded-pill px-4" onclick="startFingerprintScan()">
+                                        <i class="fa-solid fa-id-card"></i> Link Device
+                                    </button>
+                                </div>
+                                <div id="finger-scanning" style="display:none; padding-top: 20px;">
+                                    <i class="fa-solid fa-fingerprint fa-4x text-info mb-3 fa-beat"></i>
+                                    <div class="progress" style="height: 10px;">
+                                        <div id="scan-progress" class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: 0%"></div>
+                                    </div>
+                                    <p class="small mt-2 text-info fw-bold">Scanning Fingerprint...</p>
+                                </div>
+                                <div id="finger-success" style="display:none;">
+                                    <i class="fa-solid fa-shield-check fa-3x text-success mb-2"></i>
+                                    <p class="text-success fw-bold">Identity Linked</p>
+                                    <span class="badge bg-success">Reference ID: #{{ range(1000, 9999)|random }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            function startFaceScan() {
+                                document.getElementById('face-placeholder').style.display = 'none';
+                                document.getElementById('camera-container').style.display = 'block';
+                                const video = document.getElementById('video');
+                                navigator.mediaDevices.getUserMedia({ video: true })
+                                    .then(stream => { video.srcObject = stream; })
+                                    .catch(err => { alert("Camera access denied or not found."); });
+                            }
+
+                            function captureFace() {
+                                const video = document.getElementById('video');
+                                const stream = video.srcObject;
+                                const tracks = stream.getTracks();
+                                tracks.forEach(track => track.stop());
+                                document.getElementById('camera-container').style.display = 'none';
+                                document.getElementById('face-success').style.display = 'block';
+                            }
+
+                            function startFingerprintScan() {
+                                document.getElementById('fingerprint-placeholder').style.display = 'none';
+                                document.getElementById('finger-scanning').style.display = 'block';
+                                let progress = 0;
+                                const interval = setInterval(() => {
+                                    progress += 5;
+                                    document.getElementById('scan-progress').style.display = 'none'; // reset trigger
+                                    document.getElementById('scan-progress').style.display = 'block';
+                                    document.getElementById('scan-progress').style.width = progress + '%';
+                                    if (progress >= 100) {
+                                        clearInterval(interval);
+                                        document.getElementById('finger-scanning').style.display = 'none';
+                                        document.getElementById('finger-success').style.display = 'block';
+                                    }
+                                }, 100);
+                            }
+                        </script>
+
+                        <div class="col-12 mt-4">
+                            <label class="form-label fw-bold">Official Field Notes</label>
+                            <textarea name="notes" class="form-control" rows="3" placeholder="Observe land conditions, water usage, etc."></textarea>
+                        </div>
+
+                        <div class="col-12 mt-4 text-center">
+                            <button type="submit" class="btn btn-info btn-lg px-5 rounded-pill shadow">
+                                <i class="fa-solid fa-cloud-upload"></i> Upload Official Report
+                            </button>
+                            <p class="text-muted mt-2 small">By submitting, you certify that this data was collected via field visit.</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

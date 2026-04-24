@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7" data-aos="fade-up">
+        <div class="glass-card p-5 shadow-lg border-primary bg-white text-dark">
+            <div class="text-center mb-5">
+                <div class="icon-circle bg-primary-light mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem; background: rgba(33, 150, 243, 0.1);">
+                    <i class="fa-solid fa-id-card-clip text-primary"></i>
+                </div>
+                <h2 class="fw-bold text-dark">Identity Verification</h2>
+                <p class="text-secondary">Standard Government ID Requirement for Secured Rentals</p>
+            </div>
+
+            <form action="{{ url_for('rental.verify_identity') }}" method="POST" enctype="multipart/form-data">
+                <!-- DL Section -->
+                <div class="verification-section mb-5 p-4 border rounded-4 bg-light shadow-sm">
+                    <h5 class="fw-bold text-primary mb-4 border-bottom pb-2">
+                        <i class="fa-solid fa-car"></i> Driving License (DL)
+                    </h5>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark mb-1">DL Number</label>
+                        <input type="text" name="dl_number" class="form-control text-dark border-dark" style="background: #fff; color: #000 !important;" placeholder="e.g. KA-05-2023000..." required>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-bold text-dark mb-1">Upload Photo of DL (Front)</label>
+                        <div class="upload-box border-dashed rounded p-3 text-center cursor-pointer" onclick="this.querySelector('input').click()" style="background: #f8f9fa; border: 2px dashed #000;">
+                            <i class="fa-solid fa-cloud-arrow-up fa-2x text-primary mb-2"></i>
+                            <p class="small text-dark fw-bold mb-0">Click to upload DL image</p>
+                            <input type="file" name="dl_photo" class="d-none" onchange="previewImg(this, 'dl-preview')" required>
+                            <img id="dl-preview" class="mt-2 rounded shadow-sm d-none" style="height: 100px; width: auto;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aadhar Section -->
+                <div class="verification-section mb-5 p-4 border rounded-4 bg-light shadow-sm">
+                    <h5 class="fw-bold text-success mb-4 border-bottom pb-2">
+                        <i class="fa-solid fa-address-card"></i> Aadhar Card Identification
+                    </h5>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark mb-1">Aadhar Number</label>
+                        <input type="text" name="aadhar_number" class="form-control text-dark border-dark" style="background: #fff; color: #000 !important;" placeholder="12-digit number" maxlength="12" pattern="\d{12}" required>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-bold text-dark mb-1">Upload Photo of Aadhar (Front)</label>
+                        <div class="upload-box border-dashed rounded p-3 text-center cursor-pointer" onclick="this.querySelector('input').click()" style="background: #f8f9fa; border: 2px dashed #000;">
+                            <i class="fa-solid fa-cloud-arrow-up fa-2x text-success mb-2"></i>
+                            <p class="small text-dark fw-bold mb-0">Click to upload Aadhar image</p>
+                            <input type="file" name="aadhar_photo" class="d-none" onchange="previewImg(this, 'aa-preview')" required>
+                            <img id="aa-preview" class="mt-2 rounded shadow-sm d-none" style="height: 100px; width: auto;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning small border-0 shadow-sm d-flex gap-2">
+                    <i class="fa-solid fa-circle-exclamation mt-1 text-warning"></i>
+                    <span class="text-dark">I agree that my details will be shared with the equipment owner for security purposes.</span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow mt-4 py-3">
+                    Submit Documents for Verification
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewImg(input, targetId) {
+    const preview = document.getElementById(targetId);
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.classList.remove('d-none');
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+
+<style>
+    .glass-card { background: #ffffff !important; }
+    .text-dark { color: #000000 !important; }
+    .text-secondary { color: #555555 !important; }
+    .form-control { border: 1px solid #000 !important; font-weight: bold; }
+    .border-dashed:hover { border-color: #2196F3 !important; background: #eef7ff !important; }
+</style>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Server Error{% endblock %}
+
+{% block content %}
+<div class="row align-items-center justify-content-center min-vh-75" data-aos="zoom-in">
+    <div class="col-lg-8 text-center position-relative">
+        <div class="mb-5">
+            <h1 class="display-1 fw-bold text-glow" style="font-family: var(--font-heading); font-size: 8rem; opacity: 0.15; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">500</h1>
+            <div class="feature-icon-wrapper mx-auto mb-4" style="width: 120px; height: 120px; font-size: 4rem; background: rgba(244, 67, 54, 0.1); border-color: rgba(244, 67, 54, 0.3);">
+                <i class="fa-solid fa-cloud-bolt text-danger"></i>
+            </div>
+            <h2 class="display-4 fw-bold text-white mb-3">A Storm in the Server</h2>
+            <p class="text-secondary fs-5 mx-auto mb-5" style="max-width: 500px;">Our AI is experiencing a sudden storm. We've been notified and are working hard to clear the skies. Please try again in a few moments.</p>
+        </div>
+        
+        <div class="d-flex flex-wrap gap-4 justify-content-center">
+            <a href="{{ url_for('index') }}" class="btn btn-primary-glow btn-lg px-5">
+                <span><i class="fa-solid fa-rotate-right me-3"></i> Retry Request</span>
+            </a>
+            <a href="{{ url_for('dashboard.home') }}" class="btn btn-outline-glow btn-lg px-5">
+                <i class="fa-solid fa-columns me-3"></i> Return to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

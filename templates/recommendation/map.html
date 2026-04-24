@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% block title %}Map based Crop Advice{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map-container {
+        height: 550px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-glass);
+        box-shadow: var(--shadow-green);
+        background: #0a0f0a;
+    }
+    .leaflet-container {
+        background: #0f1a0f !important;
+    }
+    .leaflet-tile-pane {
+        filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+    }
+    .crop-match-card {
+        transition: var(--transition);
+        border: 1px solid var(--border-glass) !important;
+    }
+    .crop-match-card:hover {
+        border-color: var(--primary-glow) !important;
+        box-shadow: 0 0 30px rgba(76, 175, 80, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-5" data-aos="fade-down">
+    <div class="col-lg-8">
+        <h2 class="display-5 fw-bold gradient-text mb-2"><i class="fa-solid fa-map-location-dot me-3"></i> Geo-Spatial Advisor</h2>
+        <p class="text-secondary">Select your farm location on the map to get tailored crop recommendations based on soil health and climate data.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Map Side -->
+    <div class="col-lg-7" data-aos="fade-right">
+        <div class="glass-card p-3 h-100">
+            <div class="px-3 py-3 border-bottom border-glass mb-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-white"><span class="badge-glow me-2">1</span> Click to drop a pin</h5>
+                <small class="text-secondary"><i class="fa-solid fa-location-crosshairs me-1"></i> Interactive Map</small>
+            </div>
+            <div id="map-container"></div>
+        </div>
+    </div>
+    
+    <!-- Input & Output Side -->
+    <div class="col-lg-5" data-aos="fade-left">
+        <div class="d-flex flex-column gap-4 h-100">
+            <!-- Weather Display if Available -->
+            {% if weather %}
+            <div class="glass-card p-4 border-glow" style="background: linear-gradient(135deg, rgba(27, 94, 32, 0.4), rgba(46, 125, 50, 0.2));">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-secondary text-uppercase fw-bold small mb-2 letter-spacing-1">Local Perspective</h6>
+                        <h4 class="text-white fw-bold mb-0">Micro-Climate Data</h4>
+                    </div>
+                    <div class="text-end">
+                        <div class="d-flex align-items-center justify-content-end mb-1">
+                            <img src="http://openweathermap.org/img/wn/{{ weather.weather[0].icon }}.png" width="50">
+                            <h2 class="fw-bold text-white mb-0 ms-2">{{ weather.main.temp|round }}°C</h2>
+                        </div>
+                        <span class="text-success fw-bold text-capitalize">{{ weather.weather[0].description }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Input Form -->
+            <div class="glass-card p-4 p-md-5 flex-grow-1">
+                <h5 class="fw-bold mb-4 text-white"><span class="badge-glow me-2">2</span> Farm Parameters</h5>
+                <form id="recommendForm" method="POST" action="{{ url_for('recommendation.recommend_map') }}">
+                    <input type="hidden" name="lat" id="formLat" value="{{ request.form.get('lat', 20.5937) }}">
+                    <input type="hidden" name="lng" id="formLng" value="{{ request.form.get('lng', 78.9629) }}">
+
+                    <div class="row g-4">
+                        <div class="col-6">
+                            <label class="form-label">Soil Profile</label>
+                            <select name="soil_type" class="form-select" required>
+                                <option value="Loamy" {% if request.form.get('soil_type') == 'Loamy' %}selected{% endif %}>Loamy</option>
+                                <option value="Black" {% if request.form.get('soil_type') == 'Black' %}selected{% endif %}>Black Soil</option>
+                                <option value="Sandy" {% if request.form.get('soil_type') == 'Sandy' %}selected{% endif %}>Sandy Soil</option>
+                                <option value="Red" {% if request.form.get('soil_type') == 'Red' %}selected{% endif %}>Red Soil</option>
+                                <option value="Alluvial" {% if request.form.get('soil_type') == 'Alluvial' %}selected{% endif %}>Alluvial</option>
+                                <option value="Clay" {% if request.form.get('soil_type') == 'Clay' %}selected{% endif %}>Clay Soil</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Hydration</label>
+                            <select name="water" class="form-select" required>
+                                <option value="Abundant" {% if request.form.get('water') == 'Abundant' %}selected{% endif %}>Abundant</option>
+                                <option value="Moderate" {% if request.form.get('water') == 'Moderate' %}selected{% endif %}>Moderate</option>
+                                <option value="Scarce" {% if request.form.get('water') == 'Scarce' %}selected{% endif %}>Scarce</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Input Budget</label>
+                            <select name="budget" class="form-select">
+                                <option value="Low">Economic</option>
+                                <option value="Medium" selected>Standard</option>
+                                <option value="High">Premium</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Target Season</label>
+                            <select name="season" class="form-select" required>
+                                <option value="Summer" {% if request.form.get('season') == 'Summer' %}selected{% endif %}>Summer</option>
+                                <option value="Winter" {% if request.form.get('season') == 'Winter' %}selected{% endif %}>Winter</option>
+                                <option value="Rainy" {% if request.form.get('season') == 'Rainy' %}selected{% endif %}>Rainy</option>
+                                <option value="Spring" {% if request.form.get('season') == 'Spring' %}selected{% endif %}>Spring</option>
+                                <option value="Any" {% if request.form.get('season') == 'Any' %}selected{% endif %}>Any</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12 mt-5">
+                            <button type="submit" class="btn btn-primary-glow w-100 py-3" id="submitBtn">
+                                <span><i class="fa-solid fa-wand-magic-sparkles me-2"></i> Get AI Matches</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendations Output -->
+{% if recommendations %}
+<div class="mt-5 mb-5" id="resultsSection" style="scroll-margin-top: 100px;">
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h3 class="fw-bold text-white mb-2">Top Biological Propensity Match</h3>
+        <p class="text-secondary">Ranked by algorithm suitability score based on your unique topography</p>
+    </div>
+    
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for crop in recommendations %}
+        <div class="col" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 150 }}">
+            <div class="glass-card crop-match-card h-100 p-0 overflow-hidden position-relative">
+                <div class="position-absolute top-0 end-0 m-3 z-index-1">
+                    <span class="badge-glow bg-success border-success border-opacity-50">Match: {{ crop.score }}%</span>
+                </div>
+                
+                <img src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&q=80&w=600&h=400" style="height: 220px; object-fit: cover; filter: brightness(0.8);" class="w-100" alt="{{ crop.name }}">
+                
+                <div class="p-4 p-md-5" style="margin-top: -40px; background: rgba(10, 20, 10, 0.95); border-radius: 30px 30px 0 0; position: relative;">
+                    <h3 class="fw-bold text-success mb-2">{{ crop.name }}</h3>
+                    <p class="text-secondary small mb-4"><i class="fa-regular fa-calendar-check me-2 text-success"></i> Optimal Planting: {{ crop.planting_month }}</p>
+                    
+                    <div class="d-flex flex-column gap-3 mb-5">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-secondary small fw-bold text-uppercase letter-spacing-1">Yield Ceiling</span>
+                            <span class="text-white fw-bold">{{ crop.yield_range }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-secondary small fw-bold text-uppercase letter-spacing-1">Market Velocity</span>
+                            <span class="badge bg-glass-sm rounded-pill border border-glass text-secondary">{{ crop.demand }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-secondary small fw-bold text-uppercase letter-spacing-1">Profitability Index</span>
+                            <span class="text-success fw-bold text-glow">{{ crop.profit }}</span>
+                        </div>
+                    </div>
+                    
+                    <a href="{{ url_for('chatbot.chat') }}?q=How%20to%20grow%20{{ crop.name|urlencode }}%3F" class="btn btn-outline-glow w-100">Consult AgriBot Guide</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let defLat = parseFloat(document.getElementById('formLat').value);
+        let defLng = parseFloat(document.getElementById('formLng').value);
+        
+        const map = L.map('map-container', {
+            zoomControl: false
+        }).setView([defLat, defLng], 5);
+        
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        const customIcon = L.divIcon({
+            className: 'custom-marker',
+            html: '<div style="width: 20px; height: 20px; background: #4CAF50; border: 3px solid rgba(255,255,255,0.5); border-radius: 50%; box-shadow: 0 0 15px #4CAF50;"></div>',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+
+        let marker = L.marker([defLat, defLng], { icon: customIcon }).addTo(map);
+        
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            marker.setLatLng([lat, lng]);
+            document.getElementById('formLat').value = lat;
+            document.getElementById('formLng').value = lng;
+        });
+
+        {% if not recommendations %}
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                map.flyTo([userLat, userLng], 12, { duration: 2.5, easeLinearity: 0.25 });
+                marker.setLatLng([userLat, userLng]);
+                document.getElementById('formLat').value = userLat;
+                document.getElementById('formLng').value = userLng;
+            });
+        }
+        {% endif %}
+        
+        {% if recommendations %}
+        const resultsEl = document.getElementById('resultsSection');
+        if(resultsEl) resultsEl.scrollIntoView({ behavior: 'smooth' });
+        {% endif %}
+    });
+</script>
+{% endblock %}

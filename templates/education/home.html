@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="education-header mb-5 py-4 px-3" data-aos="fade-down" style="background: transparent; border-bottom: 2px solid rgba(25, 135, 84, 0.2);">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h1 class="display-6 fw-bold text-success text-uppercase letter-spacing-2">Google Classroom Style Hub</h1>
+            <p class="text-secondary opacity-75">Manage your enrolled and taught classes.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#joinClassModal">
+                <i class="fa-solid fa-plus"></i> Join Class
+            </button>
+            <button class="btn btn-success rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#createClassModal">
+                <i class="fa-solid fa-house-chimney"></i> Create Class
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="classroom-section" data-aos="fade-up">
+    <h4 class="fw-bold mb-4"><i class="fa-solid fa-school me-2"></i> Classes you teach</h4>
+    
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-md-4">
+            <div class="dron-card shadow-sm border-0 h-100 overflow-hidden" onclick="location.href='{{ url_for('education.course_detail', course_id=course.id) }}'">
+                <div class="dron-card-header p-4 text-dark position-relative" style="background: #1cb585;">
+                    <h5 class="fw-bold mb-1">{{ course.title }}</h5>
+                    <p class="small mb-0 opacity-100 fw-bold">Code: <span class="text-white">{{ course.class_code or 'SETUP' }}</span></p>
+                </div>
+                <div class="p-4 dron-card-body bg-white">
+                    <p class="text-secondary small mb-5">{{ course.category or 'General Education' }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
+                        <div class="student-bubble-group">
+                            <span class="bubble">V</span>
+                            <span class="bubble">V</span>
+                        </div>
+                        <p class="small text-muted mb-0">2 Student(s)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <p class="text-muted">You haven't created or joined any classes yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Join Class Modal -->
+<div class="modal fade" id="joinClassModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold">Join Class</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 pt-1">
+                <p class="text-muted small mb-4">Ask your teacher for the class code, then enter it here.</p>
+                <form action="{{ url_for('education.join_class') }}" method="POST">
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small fw-bold">Class code</label>
+                        <input type="text" name="class_code" class="form-control form-control-lg bg-light border-0 text-center" placeholder="E.G. 8A3B9F2D" required>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-link text-secondary text-decoration-none fw-bold" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success px-4 rounded-pill">Join</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Class Modal -->
+<div class="modal fade" id="createClassModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold">Create Class</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 pt-1">
+                <form action="{{ url_for('education.create_course') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Class name (required)</label>
+                        <input type="text" name="title" class="form-control bg-light border-0" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small fw-bold">Description</label>
+                        <input type="text" name="description" class="form-control bg-light border-0">
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-link text-secondary text-decoration-none fw-bold" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success px-4 rounded-pill">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .letter-spacing-2 { letter-spacing: 1px; }
+    .dron-card { 
+        border-radius: 12px; 
+        cursor: pointer; 
+        transition: transform 0.2s ease;
+        background: #fff;
+    }
+    .dron-card:hover { transform: translateY(-5px); }
+    .dron-card-header { border-top-left-radius: 12px; border-top-right-radius: 12px; min-height: 120px; }
+    .dron-card-body { border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
+    .bubble {
+        width: 25px;
+        height: 25px;
+        background: #97f8d6;
+        color: #1cb585;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: bold;
+        margin-right: -10px;
+        border: 2px solid #fff;
+    }
+    .modal-content { background: #ffffff; color: #333333; }
+    .modal-content h4, .modal-content label, .modal-content p { color: #333333 !important; }
+    .modal-content .form-control { 
+        background: #f8f9fa !important; 
+        color: #000000 !important; 
+        border: 1px solid rgba(0,0,0,0.1) !important; 
+    }
+    .modal-content .form-control::placeholder { color: #999 !important; }
+    .form-control:focus { box-shadow: 0 0 0 0.25rem rgba(28, 181, 133, 0.25); border-color: #1cb585; }
+</style>
+{% endblock %}

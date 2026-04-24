@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Government Schemes{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-5 g-4" data-aos="fade-down">
+    <div class="col-lg-6">
+        <h2 class="display-5 fw-bold gradient-text mb-2"><i class="fa-solid fa-file-contract me-3"></i> Gov Schemes</h2>
+        <p class="text-secondary mb-0">Find and apply for agricultural funds, insurance, and equipment subsidies.</p>
+    </div>
+    
+    <div class="col-lg-6">
+        <form method="GET" action="{{ url_for('schemes.scheme_list') }}">
+            <div class="input-group bg-glass-sm rounded-pill p-1 border border-glass shadow-lg">
+                <span class="input-group-text bg-transparent border-0 text-secondary ps-4"><i class="fa-solid fa-search"></i></span>
+                <input type="text" name="q" value="{{ search }}" class="form-control border-0 bg-transparent text-white px-3 shadow-none" placeholder="Search schemes, subsidies, insurance...">
+                {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+                <button type="submit" class="btn btn-primary-glow rounded-pill px-4">
+                    <span>Search <i class="fa-solid fa-arrow-right ms-2"></i></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Category Filters -->
+<div class="d-flex flex-wrap gap-2 mb-5" data-aos="fade-up" data-aos-delay="100">
+    <a href="{{ url_for('schemes.scheme_list', q=search, category='all') }}" class="btn rounded-pill fw-bold transition-all {% if category == 'all' or not category %}btn-primary-glow px-4{% else %}btn-outline-glow px-3{% endif %}">All Schemes</a>
+    <a href="{{ url_for('schemes.scheme_list', q=search, category='Financial Support') }}" class="btn rounded-pill fw-bold transition-all {% if category == 'Financial Support' %}btn-primary-glow px-4{% else %}btn-outline-glow px-3{% endif %}">Financial Support</a>
+    <a href="{{ url_for('schemes.scheme_list', q=search, category='Insurance') }}" class="btn rounded-pill fw-bold transition-all {% if category == 'Insurance' %}btn-primary-glow px-4{% else %}btn-outline-glow px-3{% endif %}">Insurance</a>
+    <a href="{{ url_for('schemes.scheme_list', q=search, category='Technical Support') }}" class="btn rounded-pill fw-bold transition-all {% if category == 'Technical Support' %}btn-primary-glow px-4{% else %}btn-outline-glow px-3{% endif %}">Technical Support</a>
+    <a href="{{ url_for('schemes.scheme_list', q=search, category='Marketplace') }}" class="btn rounded-pill fw-bold transition-all {% if category == 'Marketplace' %}btn-primary-glow px-4{% else %}btn-outline-glow px-3{% endif %}">Marketplace</a>
+    <a href="{{ url_for('schemes.scheme_list', q=search, category='Records') }}" class="btn rounded-pill fw-bold transition-all {% if category == 'Records' %}btn-primary-glow px-4{% else %}btn-outline-glow px-3{% endif %}">E-Katha</a>
+</div>
+
+<!-- E-Katha Section -->
+<div class="row mb-5" data-aos="zoom-in" data-aos-delay="200">
+    <div class="col-12">
+        <div class="glass-card shadow-lg p-0 overflow-hidden" style="background: linear-gradient(135deg, rgba(27, 94, 32, 0.4), rgba(13, 110, 253, 0.2)); border-color: rgba(255,255,255,0.15);">
+            <div class="card-body p-4 p-md-5">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-8">
+                        <div class="badge-glow mb-4 bg-warning bg-opacity-10 text-warning border-warning border-opacity-30">LAND RECORDS PORTAL</div>
+                        <h2 class="fw-bold text-white mb-3"><i class="fa-solid fa-map-location-dot me-3 text-success"></i> Find Your Land Records (E-Katha)</h2>
+                        <p class="fs-5 text-secondary opacity-90 mb-5">Instantly identify land registration details at your current location. Powered by secure government data repositories.</p>
+                        
+                        <div class="d-flex flex-wrap gap-3">
+                            <button id="getLocationBtn" class="btn btn-primary-glow btn-lg px-5">
+                                <span><i class="fa-solid fa-crosshairs me-2"></i> Locate My Land</span>
+                            </button>
+                            <a href="https://landrecords.karnataka.gov.in/service2/" target="_blank" class="btn btn-outline-glow btn-lg px-4 border-glass">
+                                <i class="fa-solid fa-file-invoice me-2"></i> Official Bhoomi Portal
+                            </a>
+                        </div>
+                        
+                        <div id="locationStatus" class="mt-4 d-none">
+                            <div class="glass-card p-3 bg-white bg-opacity-5 border-glass">
+                                <div class="d-flex align-items-center text-white">
+                                    <div class="loader-ring me-3" style="width: 20px; height: 20px;"></div>
+                                    <span id="statusText">Triangulating exact coordinates...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="locationResult" class="mt-4 d-none">
+                            <div class="glass-card p-4 bg-success bg-opacity-10 border-success border-opacity-30">
+                                <h5 class="fw-bold text-success mb-3"><i class="fa-solid fa-check-circle me-2"></i> Location Identified!</h5>
+                                <div class="p-3 bg-dark bg-opacity-30 rounded-4 mb-4 border border-glass">
+                                    <p class="mb-0 text-white font-monospace">COORDS: <span id="coordsText" class="text-success fw-bold"></span></p>
+                                </div>
+                                <p class="text-secondary small mb-4">To find owner name and survey number for this spot, use the <strong>Dishank App</strong> or search on Bhoomi.</p>
+                                <a id="bhoomiLink" href="https://landrecords.karnataka.gov.in/service2/RTC.aspx" target="_blank" class="btn btn-outline-glow btn-sm">
+                                    Search on Bhoomi <i class="fa-solid fa-external-link ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 d-none d-lg-block text-center">
+                        <div class="feature-icon-wrapper mx-auto mb-0" style="width: 200px; height: 200px; font-size: 6rem; background: rgba(255,255,255,0.03);">
+                            <i class="fa-solid fa-house-chimney-window text-success opacity-40"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scheme Cards -->
+<div class="row row-cols-1 row-cols-lg-2 g-4 mb-5">
+    {% for s in schemes %}
+    <div class="col" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 100 }}">
+        <div class="scheme-card h-100 p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <span class="badge-glow py-2 px-3 text-primary border-primary border-opacity-30 bg-primary bg-opacity-5"><i class="fa-solid fa-landmark me-2"></i> {{ s.ministry }}</span>
+                {% if s.is_state_specific %}
+                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3 py-1 fw-bold small">{{ s.state }} Only</span>
+                {% else %}
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1 fw-bold small">Central Scheme</span>
+                {% endif %}
+            </div>
+            
+            <h3 class="fw-bold text-white mb-3">{{ s.name }}</h3>
+            <p class="text-secondary opacity-75 mb-4 lh-lg" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                {{ s.description }}
+            </p>
+            
+            <div class="mb-4">
+                <h6 class="fw-bold text-success small text-uppercase letter-spacing-2 mb-3">Key Benefits</h6>
+                <div class="text-secondary small lh-base">
+                    {{ s.benefits }}
+                </div>
+            </div>
+
+            <div class="bg-glass-sm p-4 rounded-4 mb-5 border border-glass">
+                <div class="d-flex align-items-start mb-3">
+                    <i class="fa-solid fa-bullseye text-warning me-3 mt-1"></i>
+                    <p class="mb-0 text-secondary small"><strong class="text-white">Eligibility:</strong> {{ s.eligibility }}</p>
+                </div>
+                <div class="d-flex align-items-start">
+                    <i class="fa-solid fa-file-pdf text-danger me-3 mt-1"></i>
+                    <p class="mb-0 text-secondary small"><strong class="text-white">Documents:</strong> {{ s.documents }}</p>
+                </div>
+            </div>
+            
+            <div class="mt-auto d-flex flex-column gap-3">
+                <div class="d-flex gap-3">
+                    <a href="{{ s.apply_link }}" target="_blank" class="btn btn-primary-glow flex-fill">
+                        <span>Apply Online <i class="fa-solid fa-arrow-up-right-from-square ms-2"></i></span>
+                    </a>
+                    <a href="{{ url_for('schemes.apply_scheme', scheme_id=s.id) }}" class="btn btn-outline-glow flex-fill border-glass">
+                        Internal Quick Apply <i class="fa-solid fa-bolt ms-1"></i>
+                    </a>
+                </div>
+                <a href="{{ url_for('chatbot.chat') }}?q=Explain%20how%20to%20apply%20for%20{{ s.name|urlencode }}%3F" class="btn btn-outline-glow w-100" style="border-color: rgba(76,175,80,0.3); color: var(--primary-glow);">
+                    <i class="fa-solid fa-robot me-2"></i> Ask AgriBot Helper
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5 opacity-40">
+        <i class="fa-solid fa-folder-open fa-6x mb-4 text-success opacity-20"></i>
+        <h3 class="text-white fw-bold">No schemes found!</h3>
+        <p class="text-secondary">Try adjusting your search criteria or searching for central schemes.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+document.getElementById('getLocationBtn')?.addEventListener('click', function() {
+    const statusDiv = document.getElementById('locationStatus');
+    const resultDiv = document.getElementById('locationResult');
+    const statusText = document.getElementById('statusText');
+    const coordsText = document.getElementById('coordsText');
+    
+    statusDiv.classList.remove('d-none');
+    resultDiv.classList.add('d-none');
+    
+    if (!navigator.geolocation) {
+        statusText.innerHTML = "Geolocation not supported";
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            statusDiv.classList.add('d-none');
+            resultDiv.classList.remove('d-none');
+            coordsText.innerHTML = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        },
+        (error) => {
+            statusDiv.classList.add('d-none');
+            alert("Error: " + error.message);
+        }
+    );
+});
+</script>
+{% endblock %}

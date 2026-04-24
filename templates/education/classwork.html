@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Classroom Navbar -->
+<div class="glass-card mb-4 p-0 overflow-hidden shadow-sm" data-aos="fade-down">
+    <div class="px-4 py-3 bg-success text-white d-flex align-items-center justify-content-between">
+        <h3 class="fw-bold mb-0">{{ course.title }}</h3>
+        <span class="badge bg-light text-success">{{ course.instructor_name }}</span>
+    </div>
+    <div class="d-flex justify-content-center border-bottom">
+        <a href="{{ url_for('education.course_detail', course_id=course.id) }}" class="classroom-nav-link">Stream</a>
+        <a href="{{ url_for('education.classwork', course_id=course.id) }}" class="classroom-nav-link active">Classwork</a>
+        <a href="#" class="classroom-nav-link text-muted">People</a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-9" data-aos="fade-up">
+        {% if current_user.role == 'admin' %}
+        <div class="d-flex justify-content-end mb-4">
+            <a href="{{ url_for('education.add_lesson', course_id=course.id) }}" class="btn btn-success rounded-pill px-4 shadow">
+                 <i class="fa-solid fa-plus"></i> Create Material
+            </a>
+        </div>
+        {% endif %}
+
+        <div class="accordion" id="classworkAccordion">
+            {% for lesson in lessons %}
+            <div class="glass-card mb-3 p-0 overflow-hidden border-0 shadow-sm classroom-item">
+                <div class="p-3 d-flex align-items-center gap-3 cursor-pointer" onclick="location.href='{{ url_for('education.view_lesson', lesson_id=lesson.id) }}'">
+                    <div class="icon-circle-sm bg-light text-success">
+                        <i class="fa-solid {% if lesson.material_type == 'video' %}fa-video{% else %}fa-file-lines{% endif %}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-bold">{{ lesson.title }}</h6>
+                        <small class="text-muted">Posted {{ lesson.created_at.strftime('%d %b') }}</small>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-muted small me-2"></i>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fa-solid fa-book-open fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Work hasn't been assigned yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .classroom-nav-link { 
+        padding: 15px 30px; 
+        text-decoration: none; 
+        color: #555; 
+        font-weight: 600;
+        border-bottom: 3px solid transparent; 
+        transition: all 0.2s;
+    }
+    .classroom-nav-link:hover { color: #198754; }
+    .classroom-nav-link.active { border-bottom-color: #198754; color: #198754; }
+    .icon-circle-sm { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .classroom-item:hover { background: rgba(0,0,0,0.02); cursor: pointer; }
+    .cursor-pointer { cursor: pointer; }
+</style>
+{% endblock %}

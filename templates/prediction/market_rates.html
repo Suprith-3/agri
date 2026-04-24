@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: #2E7D32;">
+            <i class="fa-solid fa-satellite-dish pulse-red me-2"></i> Live Mandi Prices (APMC)
+        </h2>
+        <p class="text-muted">Real-time agricultural market rates from APMC yards across {{ current_user.state or 'Karnataka' }}.</p>
+    </div>
+    <div class="col-md-4">
+        <form method="GET" action="{{ url_for('prediction.live_rates') }}" class="d-flex gap-2">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-success"></i></span>
+                <input type="text" name="search" class="form-control border-start-0" placeholder="Search Crop (e.g. Coffee)..." value="{{ request.args.get('search', '') }}">
+            </div>
+            <button type="submit" class="btn btn-success rounded-3 px-4">Search</button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for rate in rates %}
+    <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+        <div class="glass-card h-100 p-3">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="badge bg-primary-subtle text-primary mb-2">{{ rate.crop }}</span>
+                    <h4 class="mb-0 fw-bold">{{ rate.mandi }}</h4>
+                    <small class="text-muted"><i class="fa-solid fa-location-dot me-1"></i> {{ rate.state }}</small>
+                </div>
+                <div class="text-end">
+                    <h3 class="mb-0 fw-bold text-success">₹{{ "{:,.0f}".format(rate.price|default(0)|float) }}</h3>
+                    <small class="text-muted">per quintal</small>
+                </div>
+            </div>
+            
+            <div class="p-2 bg-light rounded-3 mb-3 d-flex justify-content-between align-items-center">
+                <small class="text-muted">Arrival Qty:</small>
+                <span class="fw-semibold">{{ rate.arrival_quantity or 'N/A' }}</span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-auto">
+                <small class="text-muted">
+                    <i class="fa-regular fa-clock me-1"></i> Updated {{ rate.last_updated.strftime('%I:%M %p') if rate.last_updated else 'Recently' }}
+                </small>
+                <a href="{{ url_for('marketplace.map_view') }}?crop={{ rate.crop }}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                    Buy/Sell <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <div class="glass-card py-5">
+            <i class="fa-solid fa-hourglass-start fa-3x text-muted mb-3"></i>
+            <h3>Fetching Live Market Data...</h3>
+            <p class="text-muted">Please refresh the page in a moment.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .pulse-red {
+        color: #d32f2f;
+        animation: pulse-red-animation 2s infinite;
+    }
+    @keyframes pulse-red-animation {
+        0% { transform: scale(0.95); opacity: 0.7; }
+        70% { transform: scale(1.1); opacity: 1; }
+        100% { transform: scale(0.95); opacity: 0.7; }
+    }
+    .bg-success-subtle { background-color: rgba(76, 175, 80, 0.1) !important; }
+    .bg-primary-subtle { background-color: rgba(33, 150, 243, 0.1) !important; }
+</style>
+{% endblock %}

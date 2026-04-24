@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4" data-aos="fade-down">
+        <div class="col-12">
+            <h2 class="display-5 fw-bold gradient-text">Checkout</h2>
+            <p class="text-secondary">Complete your order by providing delivery details and payment method.</p>
+        </div>
+    </div>
+
+    <form action="{{ url_for('shop.checkout') }}" method="POST" id="checkout-form">
+        <div class="row g-4">
+            <div class="col-lg-7" data-aos="fade-right">
+                <div class="glass-card p-4">
+                    <h4 class="fw-bold text-dark mb-4"><i class="fa-solid fa-truck-fast me-2 text-success"></i> Delivery Address</h4>
+                    <div class="mb-3">
+                        <label class="form-label">Full Delivery Address</label>
+                        <textarea name="address" class="form-control" rows="4" placeholder="House No, Village, Mandal, District, Pincode" required></textarea>
+                    </div>
+                    
+                    <h4 class="fw-bold text-dark mt-5 mb-4"><i class="fa-solid fa-credit-card me-2 text-success"></i> Payment Method</h4>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="w-100">
+                                <input type="radio" name="payment_method" value="COD" class="btn-check" checked>
+                                <div class="glass-card p-4 text-center cursor-pointer radio-card">
+                                    <i class="fa-solid fa-hand-holding-dollar fs-2 mb-3 text-success"></i>
+                                    <div class="fw-bold text-dark">Cash on Delivery</div>
+                                    <div class="small text-secondary mt-1">Pay when you receive</div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="w-100">
+                                <input type="radio" name="payment_method" value="Online" class="btn-check">
+                                <div class="glass-card p-4 text-center cursor-pointer radio-card">
+                                    <i class="fa-solid fa-shield-halved fs-2 mb-3 text-primary"></i>
+                                    <div class="fw-bold text-dark">Online Payment</div>
+                                    <div class="small text-secondary mt-1">Razorpay Secured</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5" data-aos="fade-left">
+                <div class="glass-card p-4">
+                    <h4 class="fw-bold text-dark mb-4">Final Amount</h4>
+                    <div class="display-4 fw-bold text-success mb-2">₹{{ total }}</div>
+                    <p class="text-secondary small mb-4">Including all taxes and free agricultural delivery.</p>
+                    
+                    <button type="submit" class="btn btn-primary-glow w-100 py-3">
+                        <span>Place Order <i class="fa-solid fa-check-circle ms-2"></i></span>
+                    </button>
+                    
+                    <div class="mt-4 p-3 bg-light rounded shadow-sm text-center">
+                        <i class="fa-solid fa-lock text-success me-2"></i>
+                        <span class="small text-dark fw-bold">100% Secure Checkout</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    .radio-card {
+        border: 2px solid transparent;
+        cursor: pointer;
+    }
+    .btn-check:checked + .radio-card {
+        border-color: #4CAF50;
+        background: rgba(76,175,80,0.05);
+    }
+</style>
+{% endblock %}

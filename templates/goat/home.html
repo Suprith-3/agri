@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="goat-header py-5 text-center" data-aos="zoom-in">
+    <h1 class="display-3 fw-bold text-gradient-gold text-uppercase tracking-tighter">
+        <i class="fa-solid fa-medal"></i> Learn with GOAT
+    </h1>
+    <p class="text-secondary opacity-75 fs-4">Unlock Masterclasses from the Greatest Agriculturalists of All Time.</p>
+    <div class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm">
+        <i class="fa-solid fa-bolt"></i> Only ₹1 per Expert session
+    </div>
+</div>
+
+<div class="row g-4 mt-2">
+    {% for expert in experts %}
+    <div class="col-md-3">
+        <div class="goat-card glass-card border-0 shadow-lg overflow-hidden h-100 transition-all hover-glow" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+            <div class="expert-img-container position-relative">
+                <img src="{{ expert.image_url }}" class="w-100 expert-img" alt="{{ expert.name }}">
+                <div class="expert-overlay p-3 d-flex flex-column justify-content-end">
+                    <h5 class="text-white fw-bold mb-0">{{ expert.name }}</h5>
+                    <small class="text-warning fw-bold">{{ expert.title }}</small>
+                </div>
+            </div>
+            <div class="p-4 bg-white/10">
+                <p class="small text-muted mb-3 opacity-75">{{ expert.description | truncate(80) }}</p>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <small class="text-info"><i class="fa-solid fa-calendar-day"></i> {{ expert.schedule_time }}</small>
+                </div>
+                
+                {% if expert.id in unlocked_ids %}
+                <a href="{{ url_for('goat.live_session', session_id='GOAT-' + expert.id|string) }}?host=true" class="btn btn-success w-100 rounded-pill fw-bold shadow">
+                    <i class="fa-solid fa-play"></i> Join Live Session
+                </a>
+                {% else %}
+                <button onclick="unlockGoat('{{ expert.id }}', '{{ expert.name }}')" class="btn btn-outline-warning w-100 rounded-pill fw-bold hover-bg-gold">
+                    <i class="fa-solid fa-lock"></i> Unlock for ₹1
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted fs-5">Seeding the 20 Agricultural Legends... Please wait or refresh.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Razorpay Integration -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+function unlockGoat(expertId, expertName) {
+    const options = {
+        "key": "{{ rzp_id }}",
+        "amount": 100, // ₹1 in paise
+        "currency": "INR",
+        "name": "BHOOMITRA GOAT",
+        "description": "Unlock Masterclass by " + expertName,
+        "handler": function (response) {
+            // SUCCESS HANDLER: Send data to backend for verification
+            fetch("{{ url_for('goat.unlock_expert') }}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    expert_id: expertId,
+                    payment_id: response.razorpay_payment_id,
+                    order_id: response.razorpay_order_id,
+                    signature: response.razorpay_signature
+                })
+            }).then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    alert("Payment Verified! Masterclass Unlocked.");
+                    window.location.reload();
+                } else {
+                    alert("Verification failed: " + data.message);
+                }
+            });
+        },
+        "prefill": {
+            "name": "{{ current_user.first_name }}",
+            "email": "{{ current_user.email }}"
+        },
+        "theme": { "color": "#FFC107" }
+    };
+    
+    const rzp = new Razorpay(options);
+    rzp.open();
+}
+</script>
+
+<style>
+    .text-gradient-gold {
+        background: linear-gradient(90deg, #FFD700, #FFA500);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .expert-img-container { height: 280px; overflow: hidden; }
+    .expert-img { height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .goat-card:hover .expert-img { transform: scale(1.1); }
+    .expert-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    }
+    .hover-glow:hover { box-shadow: 0 0 25px rgba(255, 215, 0, 0.3) !important; transform: translateY(-5px); }
+    .hover-bg-gold:hover { background: #FFC107 !important; color: #000 !important; }
+</style>
+{% endblock %}

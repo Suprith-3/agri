@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}BHOOMITRA Premium - Join Now{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="text-center mb-5" data-aos="fade-down">
+            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill mb-3">
+                <i class="fa-solid fa-crown me-2"></i> BHOOMITRA PREMIUM
+            </span>
+            <h2 class="display-6 fw-bold text-white mb-2">Unlock Your Digital Agri-Hub</h2>
+            <p class="text-secondary">Manage inventory, automate reorders, and get advanced analytics for just <strong>₹1</strong>.</p>
+        </div>
+
+        <div class="glass-card p-4 p-md-5" data-aos="fade-up">
+            <h4 class="text-white mb-4 fw-bold"><i class="fa-solid fa-file-pen me-2 text-primary"></i> Business Details</h4>
+            <form method="POST">
+                <div class="row g-4">
+                    <div class="col-md-12">
+                        <label class="form-label text-secondary small text-uppercase fw-bold">Shop Name</label>
+                        <input type="text" name="shop_name" class="form-control form-control-lg bg-dark bg-opacity-25 border-glass" required placeholder="ex. Balaji Kisan Seva">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label text-secondary small text-uppercase fw-bold">Full Address</label>
+                        <textarea name="address" class="form-control bg-dark bg-opacity-25 border-glass" rows="3" required placeholder="Physical location of your shop..."></textarea>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label text-secondary small text-uppercase fw-bold">GST (Optional)</label>
+                        <input type="text" name="gst" class="form-control bg-dark bg-opacity-25 border-glass" placeholder="GSTIN Number">
+                    </div>
+                    
+                    <div class="col-md-12 mb-3">
+                        <hr class="border-glass opacity-25">
+                        <h6 class="text-white mb-3 fw-bold small text-uppercase letter-spacing-1">Partner Details (Optional)</h6>
+                        <label class="form-label text-secondary small text-uppercase fw-bold">Partner Name</label>
+                        <input type="text" name="partner_name" class="form-control bg-dark bg-opacity-25 border-glass mb-3" placeholder="Co-owner or Partner Name">
+                        <label class="form-label text-secondary small text-uppercase fw-bold">Partner Details / Contribution</label>
+                        <textarea name="partner_details" class="form-control bg-dark bg-opacity-25 border-glass" rows="2" placeholder="Briefly describe the partner's role..."></textarea>
+                    </div>
+                </div>
+
+                <div class="premium-notice p-4 rounded-glow bg-success bg-opacity-10 border border-success border-opacity-25 mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 bg-success bg-opacity-20 rounded-circle me-3">
+                            <i class="fa-solid fa-shield-check text-success fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-white mb-1 fw-bold">Secure ₹1 Activation</h6>
+                            <p class="text-secondary small mb-0">After registration, you will be directed to the Razorpay Secure Gateway to activate your business hub.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary-glow w-100 py-3 text-uppercase fw-bold letter-spacing-1">
+                    Proceed to Payment <i class="fa-solid fa-arrow-right ms-2"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

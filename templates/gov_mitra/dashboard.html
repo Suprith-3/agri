@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="gov-mitra-header mb-4" data-aos="fade-down">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h1 class="display-5 fw-bold text-gradient"><i class="fa-solid fa-building-columns"></i> Gov Mitra Portal</h1>
+            <p class="text-muted">Quarterly Surveillance & Farmer Productivity Management</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-info p-2 px-3 rounded-pill"><i class="fa-solid fa-user-shield"></i> Official Access Active</span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Statistics Overview -->
+    <div class="col-md-3" data-aos="zoom-in" data-aos-delay="100">
+        <div class="stat-card p-4 glass-card text-center border-info">
+            <div class="icon-circle bg-info-light mb-3">
+                <i class="fa-solid fa-users text-info"></i>
+            </div>
+            <h2 class="fw-bold mb-1">{{ farmers|length }}</h2>
+            <p class="text-muted small mb-0">Registered Farmers</p>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="zoom-in" data-aos-delay="200">
+        <div class="stat-card p-4 glass-card text-center border-success">
+            <div class="icon-circle bg-success-light mb-3">
+                <i class="fa-solid fa-file-signature text-success"></i>
+            </div>
+            <h2 class="fw-bold mb-1">{{ recent_surveys|length }}</h2>
+            <p class="text-muted small mb-0">Reports Logged (Q-Series)</p>
+        </div>
+    </div>
+    <div class="col-md-6" data-aos="fade-left" data-aos-delay="300">
+        <div class="glass-card p-4 h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <h4 class="fw-bold"><i class="fa-solid fa-plus-circle"></i> Quarterly Survey</h4>
+                <p class="text-muted mb-0">Record new data for a farmer for the current quarter.</p>
+            </div>
+            <a href="{{ url_for('gov_mitra.new_survey') }}" class="btn btn-info px-4 rounded-pill">
+                 Start New Survey
+            </a>
+        </div>
+    </div>
+
+    <!-- Farmer Search Table -->
+    <div class="col-12 mt-4" data-aos="fade-up">
+        <div class="glass-card p-4 shadow-sm">
+            <h4 class="fw-bold mb-4"><i class="fa-solid fa-magnifying-glass"></i> Farmer Management & Analysis</h4>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Farmer Name</th>
+                            <th>District</th>
+                            <th>Farm Size (Acres)</th>
+                            <th>Biometric Status</th>
+                            <th>Quarterly History</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for farmer in farmers %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar me-3 bg-primary-light text-primary">
+                                        {{ farmer.name[0] }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ farmer.name }}</div>
+                                        <div class="text-muted extra-small">{{ farmer.phone }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ farmer.district }}</td>
+                            <td>{{ farmer.farm_size }}</td>
+                            <td>
+                                {% if farmer.is_verified %}
+                                    <span class="badge bg-success-light text-success rounded-pill"><i class="fa-solid fa-fingerprint"></i> Scanned</span>
+                                {% else %}
+                                    <span class="badge bg-warning-light text-warning rounded-pill"><i class="fa-solid fa-circle-exclamation"></i> Required</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="progress" style="height: 8px; width: 100px;">
+                                    {% set survey_count = farmer.surveys|length %}
+                                    <div class="progress-bar bg-info" style="width: {{ (survey_count/4)*100 }}%"></div>
+                                </div>
+                                <small class="text-muted">{{ survey_count }}/4 Logs</small>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('gov_mitra.farmer_history', farmer_id=farmer.id) }}" class="btn btn-sm btn-outline-info rounded-pill">
+                                    Analyze History
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Surveys -->
+    <div class="col-12 mt-4" data-aos="fade-up">
+        <div class="glass-card p-4">
+            <h4 class="fw-bold mb-4"><i class="fa-solid fa-history"></i> Recent Submissions</h4>
+            <div class="list-group list-group-flush">
+                {% for survey in recent_surveys %}
+                <div class="list-group-item bg-transparent px-0 py-3">
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1 fw-bold">{{ survey.farmer.name }} - Quarter {{ survey.quarter }} ({{ survey.year }})</h6>
+                            <p class="mb-0 text-muted small">
+                                Crop: <span class="text-info">{{ survey.crop_grown }}</span> | 
+                                Performance: 
+                                {% if survey.profit_loss >= 0 %}
+                                    <span class="text-success">+₹{{ survey.profit_loss }}</span>
+                                {% else %}
+                                    <span class="text-danger">₹{{ survey.profit_loss }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block">Logged By: {{ survey.collecting_official }}</small>
+                            <small class="text-muted d-block">{{ survey.created_at.strftime('%d %b %Y') }}</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-info-light { background: rgba(13, 202, 240, 0.1); }
+    .bg-success-light { background: rgba(25, 135, 84, 0.1); }
+    .bg-primary-light { background: rgba(13, 110, 253, 0.1); }
+    .bg-warning-light { background: rgba(255, 193, 7, 0.1); }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .icon-circle { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 1.5rem; }
+    .extra-small { font-size: 0.75rem; }
+</style>
+{% endblock %}

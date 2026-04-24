@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7" data-aos="fade-up">
+        <div class="glass-card p-5 shadow-lg border-success">
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-file-circle-plus text-success"></i> Add Material</h2>
+            <p class="text-muted mb-4">Post to {{ course.title }}</p>
+
+            <form action="{{ url_for('education.add_lesson', course_id=course.id) }}" method="POST">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Material Title</label>
+                    <input type="text" name="title" class="form-control" placeholder="e.g. Introduction to Crop Rotation" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Material Type</label>
+                    <select name="material_type" class="form-select">
+                        <option value="reading">📖 Reading Material</option>
+                        <option value="video">🎥 Video Lesson</option>
+                        <option value="assignment">📝 Assignment</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">External Link (Optional)</label>
+                    <input type="url" name="external_link" class="form-control" placeholder="YouTube or PDF Link">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Main Content</label>
+                    <textarea name="content" class="form-control" rows="8" placeholder="Write your lesson content here..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-success w-100 py-3 rounded-pill shadow">
+                    Post to Classwork
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

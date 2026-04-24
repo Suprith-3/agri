@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Marketplace{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-5 g-4" data-aos="fade-down">
+    <div class="col-lg-6">
+        <h2 class="display-5 fw-bold gradient-text mb-2"><i class="fa-solid fa-store me-3"></i> Direct Marketplace</h2>
+        <p class="text-secondary">Buy fresh stock directly from Indian farmers without intermediaries.</p>
+    </div>
+    <div class="col-lg-6">
+        <form class="d-flex gap-3">
+            <div class="input-group bg-glass-sm rounded-pill p-1 border border-glass shadow-lg">
+                <input type="text" name="q" value="{{ current_search }}" class="form-control border-0 bg-transparent text-white px-4 shadow-none" placeholder="Search crops...">
+                <input type="text" name="state" class="form-control border-0 bg-transparent text-white px-4 shadow-none border-start border-glass" placeholder="State filter...">
+                <button type="submit" class="btn btn-primary-glow rounded-pill px-4">
+                    <span><i class="fa-solid fa-magnifying-glass"></i></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if not current_user.is_authenticated %}
+<div class="glass-card p-4 mb-5 border-glow" data-aos="fade-up">
+    <div class="d-flex align-items-center gap-4">
+        <div class="feature-icon-wrapper mb-0" style="width: 60px; height: 60px; font-size: 1.5rem; background: rgba(255, 179, 0, 0.1); border-color: rgba(255, 179, 0, 0.3);">
+            <i class="fa-solid fa-lock text-warning"></i>
+        </div>
+        <div>
+            <h5 class="fw-bold text-white mb-1">To connect and sell on the marketplace</h5>
+            <p class="text-secondary mb-0"><a href="{{ url_for('auth.login') }}" class="text-success text-decoration-none fw-bold hover-glow">Login</a> or <a href="{{ url_for('auth.register') }}" class="text-success text-decoration-none fw-bold hover-glow">Register</a> to view seller contact numbers.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4 row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 mb-5">
+    {% for post in listings.items %}
+    <div class="col" data-aos="fade-up" data-aos-delay="{{ (loop.index0 % 4) * 150 }}">
+        <div class="listing-card h-100 position-relative">
+            <!-- Price Badge -->
+            <div class="price-badge z-index-1">
+                ₹ {{ post.price }} / {{ post.unit }}
+            </div>
+            
+            {% if post.is_organic %}
+            <div class="position-absolute top-0 start-0 m-3 z-index-1">
+                <span class="badge bg-success bg-opacity-75 backdrop-blur rounded-pill py-2 px-3 fw-bold shadow-lg border border-success border-opacity-50"><i class="fa-solid fa-leaf text-white me-2"></i>Organic</span>
+            </div>
+            {% endif %}
+
+            <!-- Image -->
+            <div class="overflow-hidden">
+                {% if post.image_path %}
+                    <img src="{{ url_for('static', filename='uploads/' + post.image_path) }}" class="w-100 object-fit-cover" style="height: 220px;" alt="{{ post.crop_name }}">
+                {% else %}
+                    <div class="w-100 d-flex align-items-center justify-content-center bg-glass-sm text-secondary opacity-30" style="height: 220px;">
+                        <i class="fa-solid fa-box-open fa-4x"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="p-4">
+                <h5 class="fw-bold text-white mb-2">{{ post.crop_name }}</h5>
+                <h6 class="text-secondary small fw-bold mb-4"><i class="fa-solid fa-location-dot me-2 text-success opacity-50"></i>{{ post.district }}, {{ post.state }}</h6>
+
+                <div class="d-flex justify-content-between align-items-center border-top border-glass pt-3 mb-4">
+                    <span class="text-secondary small fw-bold text-uppercase letter-spacing-1">Available</span>
+                    <span class="text-success fw-bold">{{ post.quantity }} {{ post.unit }}</span>
+                </div>
+                
+                <a href="{{ url_for('marketplace.detail', id=post.id) }}" class="btn btn-outline-glow w-100">View Details</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5 opacity-40" data-aos="zoom-in">
+        <i class="fa-solid fa-basket-shopping fa-6x mb-4 text-success opacity-30"></i>
+        <h3 class="text-white fw-bold">No active listings found</h3>
+        <p class="text-secondary">Try clearing your filters or check back later for fresh stock.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination Controls -->
+{% if listings.pages > 1 %}
+<nav aria-label="Page navigation" class="mb-5 py-4" data-aos="fade-up">
+  <ul class="pagination justify-content-center gap-2">
+    <li class="page-item {% if not listings.has_prev %}disabled{% endif %}">
+      <a class="page-link glass-card border-glass text-secondary rounded-circle d-flex align-items-center justify-content-center" style="width:45px; height:45px;" href="{{ url_for('marketplace.browse', page=listings.prev_num, q=current_search) }}"><i class="fa-solid fa-chevron-left"></i></a>
+    </li>
+    
+    {% for page_num in listings.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+            {% if listings.page == page_num %}
+            <li class="page-item active">
+                <a class="page-link btn-primary-glow border-0 rounded-circle d-flex align-items-center justify-content-center" style="width:45px; height:45px;" href="{{ url_for('marketplace.browse', page=page_num, q=current_search) }}"><span>{{ page_num }}</span></a>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link glass-card border-glass text-secondary rounded-circle d-flex align-items-center justify-content-center" style="width:45px; height:45px;" href="{{ url_for('marketplace.browse', page=page_num, q=current_search) }}">{{ page_num }}</a>
+            </li>
+            {% endif %}
+        {% else %}
+            <li class="page-item disabled"><span class="page-link glass-card border-0 text-secondary d-flex align-items-center justify-content-center" style="width:45px; height:45px;">...</span></li>
+        {% endif %}
+    {% endfor %}
+    
+    <li class="page-item {% if not listings.has_next %}disabled{% endif %}">
+      <a class="page-link glass-card border-glass text-secondary rounded-circle d-flex align-items-center justify-content-center" style="width:45px; height:45px;" href="{{ url_for('marketplace.browse', page=listings.next_num, q=current_search) }}"><i class="fa-solid fa-chevron-right"></i></a>
+    </li>
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

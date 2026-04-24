@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Farmer Login{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card" data-aos="zoom-in">
+        <div class="text-center mb-5">
+            <div class="feature-icon-wrapper mx-auto mb-4" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                <i class="fa-solid fa-tractor gradient-text"></i>
+            </div>
+            <h3 class="fw-bold text-white mb-2 h2">Welcome Back</h3>
+            <p class="text-secondary mb-0">Login to access your dashboard</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.login') }}" data-aos="fade-up" data-aos-delay="100">
+            <div class="mb-4">
+                <label class="form-label">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 border-glass"><i class="fa-solid fa-envelope text-muted"></i></span>
+                    <input type="email" name="email" class="form-control border-start-0" required placeholder="Enter your registered email">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between">
+                    <label class="form-label">Password</label>
+                    <a href="#" class="small text-decoration-none text-success opacity-75">Forgot password?</a>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 border-glass"><i class="fa-solid fa-lock text-muted"></i></span>
+                    <input type="password" name="password" class="form-control border-start-0" required placeholder="••••••••">
+                </div>
+            </div>
+
+            <div class="mb-4 form-check user-select-none">
+                <input type="checkbox" class="form-check-input" id="rememberMe">
+                <label class="form-check-label text-secondary small" for="rememberMe">Remember me</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary-glow w-100 py-3 mt-2">
+                <span>Secure Login <i class="fa-solid fa-right-to-bracket ms-2"></i></span>
+            </button>
+        </form>
+        
+        <div class="text-center mt-5" data-aos="fade-up" data-aos-delay="200">
+            <p class="text-secondary small mb-3">Don't have an account yet?</p>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-glow w-100">Register as Farmer</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Apply for {{ scheme.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8" data-aos="zoom-in">
+        <div class="glass-card p-0 overflow-hidden my-5">
+            <div class="p-4 p-md-5 border-bottom border-glass bg-glass-sm d-flex justify-content-between align-items-center">
+                <div>
+                   <h2 class="display-6 fw-bold text-white mb-2"><i class="fa-solid fa-pen-to-square me-3 text-success"></i>Internal Application</h2>
+                   <p class="text-secondary mb-0">Submitting for: <span class="text-success fw-bold">{{ scheme.name }}</span></p>
+                </div>
+                <div class="feature-icon-wrapper d-none d-md-flex p-0 m-0" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    <i class="fa-solid fa-file-signature text-success"></i>
+                </div>
+            </div>
+            
+            <div class="p-4 p-md-5">
+                <form method="POST" action="{{ url_for('schemes.apply_scheme', scheme_id=scheme.id) }}">
+                    <div class="mb-4">
+                        <label class="form-label">Full Applicant Name</label>
+                        <input type="text" name="applicant_name" class="form-control" value="{{ current_user.name }}" required>
+                    </div>
+                    
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Aadhaar Number (12 Digits)</label>
+                            <input type="text" name="aadhaar_number" class="form-control" placeholder="0000 0000 0000" pattern="\d{12}" title="Must be exactly 12 digits" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Contact Number</label>
+                            <input type="text" name="contact_number" class="form-control" placeholder="Phone number" value="{{ current_user.phone }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-5">
+                        <label class="form-label">Physical Residence / Farm Address</label>
+                        <textarea name="address" class="form-control" rows="3" placeholder="Enter complete address details for field verification..." required></textarea>
+                    </div>
+                    
+                    <div class="glass-card mb-5 border-glow" style="background: rgba(255,179,0,0.05);">
+                        <div class="d-flex align-items-start gap-4 p-2">
+                           <i class="fa-solid fa-triangle-exclamation fa-2x text-warning opacity-50 mt-1"></i>
+                           <div>
+                                <h6 class="fw-bold text-white mb-2">Important Instructions</h6>
+                                <p class="text-secondary small mb-0">Documents listed as <strong>{{ scheme.documents }}</strong> will be verified by local officers. Ensure your eligibility matches: <strong>{{ scheme.eligibility }}</strong>.</p>
+                           </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex flex-column flex-sm-row justify-content-end gap-3 mt-5">
+                        <a href="{{ url_for('schemes.scheme_list') }}" class="btn btn-outline-glow px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary-glow px-5">
+                            <span>Submit Application <i class="fa-solid fa-paper-plane ms-2"></i></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

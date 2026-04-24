@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AgriSmart - The all-in-one AI platform for farmers. Disease detection, market price prediction, farming roadmap, and direct marketplace.">
+    <title>{% block title %}AgriSmart{% endblock %}</title>
+    
+    <!-- AOS Animation Library -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css"/>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Modern Speed Tools -->
+    <script src="{{ url_for('static', filename='js/nprogress.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/nprogress.css') }}">
+    <script src="https://unpkg.com/htmx.org@1.9.10" crossorigin="anonymous"></script>
+    <script src="//instant.page/5.2.0" type="module"></script>
+    <!-- Chart.js (Moved to Head for faster access on boosted pages) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Razorpay Checkout (Global) -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <!-- Google Translate (Modern Integration) -->
+    <style>
+        .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
+        body { top: 0px !important; }
+        .goog-te-gadget-simple {
+            background-color: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            font-size: 0.9rem !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        .goog-te-menu-value span { color: var(--text-primary) !important; font-weight: 600 !important; }
+    </style>
+    
+    <script>
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,kn,hi,te,ta,ml,mr',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- Navigation (Static) -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top" hx-boost="true" hx-target="#main-content" hx-select="#main-content" aria-label="Main navigation">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}" hx-boost="false" aria-label="AgriSmart Home">
+                <i class="fa-solid fa-leaf" aria-hidden="true"></i> BHOOMITRA
+            </a>
+            
+            <div id="google_translate_element" class="ms-auto me-3 d-none d-lg-block"></div>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard.home') }}" aria-label="Dashboard"><i class="fa-solid fa-gauge" aria-hidden="true"></i></a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('disease.detect') }}" aria-label="Disease Detection"><i class="fa-solid fa-microscope" aria-hidden="true"></i></a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('prediction.price') }}" aria-label="Price Forecast"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('roadmap.index') }}" aria-label="Farming Roadmap"><i class="fa-solid fa-route" aria-hidden="true"></i></a></li>
+                        <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('chatbot.chat') }}" aria-label="AgriBot Chat"><i class="fa-solid fa-robot" aria-hidden="true"></i></a></li>
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}" hx-boost="false">Logout</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}" hx-boost="false">Login</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div id="progress-indicator" class="htmx-indicator" role="progressbar" aria-label="Loading page" style="position:fixed; top:0; left:0; width:100%; height:3px; background:#4CAF50; z-index:9999;"></div>
+
+    <main id="main-content" class="container py-4 mb-5-mobile">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+        <!-- Page-specific scripts must be inside this block to run on HTMX swap -->
+        {% block extra_js %}{% endblock %}
+    </main>
+
+    <!-- App-Style Bottom Navigation (Mobile Only) -->
+    <nav class="mobile-nav" hx-boost="true" hx-target="#main-content" hx-select="#main-content" aria-label="Mobile Bottom Navigation">
+        <a href="{{ url_for('dashboard.home') }}" class="nav-item" aria-label="Home">
+            <i class="fa-solid fa-house" aria-hidden="true"></i>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('marketplace.browse') }}" class="nav-item" aria-label="Market">
+            <i class="fa-solid fa-store" aria-hidden="true"></i>
+            <span>Market</span>
+        </a>
+        <button class="nav-item action-trigger border-0 bg-transparent" onclick="toggleActionSheet()" aria-label="Open Quick Actions">
+            <div class="action-btn-main">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            </div>
+            <span>Actions</span>
+        </button>
+        <a href="{{ url_for('shop.public_shop') }}" class="nav-item" aria-label="Shop">
+            <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+            <span>Shop</span>
+        </a>
+        <a href="{{ url_for('chatbot.chat') }}" class="nav-item" aria-label="Chatbot">
+            <i class="fa-solid fa-robot" aria-hidden="true"></i>
+            <span>AgriBot</span>
+        </a>
+    </nav>
+
+    <!-- Mobile Action Sheet -->
+    <div id="action-sheet-overlay" class="action-sheet-overlay" onclick="toggleActionSheet()" aria-hidden="true"></div>
+    <div id="action-sheet" class="action-sheet" role="dialog" aria-labelledby="action-sheet-title">
+        <div class="action-sheet-header">
+            <div class="handle"></div>
+            <h5 id="action-sheet-title" class="text-dark fw-bold mb-0">Quick Actions</h5>
+            <button class="btn-close" onclick="toggleActionSheet()" aria-label="Close Actions"></button>
+        </div>
+        <div class="action-sheet-body" hx-boost="true" hx-target="#main-content" hx-select="#main-content">
+            <div class="row g-3">
+                <div class="col-4">
+                    <a href="{{ url_for('disease.detect') }}" class="action-item" onclick="toggleActionSheet()">
+                        <i class="fa-solid fa-camera text-danger"></i>
+                        <span>Scan Plant</span>
+                    </a>
+                </div>
+                <div class="col-4">
+                    <a href="{{ url_for('prediction.price') }}" class="action-item" onclick="toggleActionSheet()">
+                        <i class="fa-solid fa-chart-line text-success"></i>
+                        <span>Price Forecast</span>
+                    </a>
+                </div>
+                <div class="col-4">
+                    <a href="{{ url_for('labour.find_labour') }}" class="action-item" onclick="toggleActionSheet()">
+                        <i class="fa-solid fa-users text-primary"></i>
+                        <span>Find Labour</span>
+                    </a>
+                </div>
+                <div class="col-4">
+                    <a href="{{ url_for('marketplace.add_listing') }}" class="action-item" onclick="toggleActionSheet()">
+                        <i class="fa-solid fa-circle-plus text-warning"></i>
+                        <span>Sell Crop</span>
+                    </a>
+                </div>
+                <div class="col-4">
+                    <a href="{{ url_for('schemes.scheme_list') }}" class="action-item" onclick="toggleActionSheet()">
+                        <i class="fa-solid fa-file-invoice-dollar text-info"></i>
+                        <span>Schemes</span>
+                    </a>
+                </div>
+                <div class="col-4">
+                    <a href="{{ url_for('roadmap.index') }}" class="action-item" onclick="toggleActionSheet()">
+                        <i class="fa-solid fa-route text-success"></i>
+                        <span>Roadmap</span>
+                    </a>
+                </div>
+                <div class="col-4">
+                    <a href="{{ url_for('vision.three_eye') }}" class="action-item" onclick="toggleActionSheet()">
+                        <i class="fa-solid fa-eye text-success"></i>
+                        <span>3 EYE</span>
+                    </a>
+                </div>
+                <div class="col-4">
+                    <a href="{{ url_for('fertilizer.scan') }}" class="action-item" onclick="toggleActionSheet()">
+                        <i class="fa-solid fa-flask text-info"></i>
+                        <span>Fertilizer</span>
+                    </a>
+                </div>
+                <div class="col-4">
+                    <a href="{{ url_for('gov_mitra.dashboard') }}" class="action-item" onclick="toggleActionSheet()">
+                        <i class="fa-solid fa-building-columns text-dark"></i>
+                        <span>Gov Mitra</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script>
+      // MEGA-FAST CORE
+      (function() {
+          document.body.style.opacity = "1";
+          
+          var setup = function() {
+              if (window.AOS) AOS.init({ duration: 300, once: true });
+              var navCollapse = document.getElementById('navbarNav');
+              if (navCollapse && navCollapse.classList.contains('show')) {
+                  bootstrap.Collapse.getInstance(navCollapse).hide();
+              }
+          };
+
+          setup();
+
+          document.body.addEventListener('htmx:beforeSend', function() { if (window.NProgress) NProgress.start(); });
+          document.body.addEventListener('htmx:afterOnLoad', function() { 
+              if (window.NProgress) NProgress.done();
+              setup();
+              window.scrollTo(0,0);
+          });
+          
+          window.addEventListener('scroll', function() {
+              var nav = document.querySelector('.navbar');
+              if (nav) nav.classList.toggle('scrolled', window.scrollY > 20);
+          });
+
+          var updateMobileNav = function() {
+              var path = window.location.pathname;
+              document.querySelectorAll('.mobile-nav .nav-item').forEach(item => {
+                  item.classList.toggle('active', item.getAttribute('href') === path);
+              });
+          };
+
+          window.toggleActionSheet = function() {
+              const sheet = document.getElementById('action-sheet');
+              const overlay = document.getElementById('action-sheet-overlay');
+              if (sheet.classList.contains('active')) {
+                  sheet.classList.remove('active');
+                  overlay.classList.remove('active');
+                  document.body.style.overflow = 'auto';
+              } else {
+                  sheet.classList.add('active');
+                  overlay.classList.add('active');
+                  document.body.style.overflow = 'hidden';
+              }
+          };
+
+          updateMobileNav();
+          document.body.addEventListener('htmx:afterOnLoad', updateMobileNav);
+
+          // GLOBAL RAZORPAY HANDLER
+          window.handleRazorpayPayment = async function(type, rzpKey, event) {
+              const btn = event ? event.currentTarget : null;
+              const originalHTML = btn ? btn.innerHTML : '';
+              if (btn) {
+                  btn.disabled = true;
+                  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Processing...';
+              }
+
+              try {
+                  if (typeof Razorpay === 'undefined') {
+                      throw new Error("Payment SDK not loaded. Please wait a moment or refresh.");
+                  }
+                  
+                  // Using simple payment flow (no Order ID) as it is more reliable in test mode
+                  // and matches the 'GOAT' implementation confirmed working by the user.
+                  const rzpOptions = {
+                      "key": rzpKey,
+                      "amount": 100, // ₹1 in paise
+                      "currency": "INR",
+                      "name": "BHOOMITRA",
+                      "description": type === 'activation' ? "Shop Activation" : "Service Payment",
+                      "handler": async function(response) {
+                          if (btn) btn.innerHTML = '<i class="fa-solid fa-check-circle me-2"></i> Verifying...';
+                          try {
+                              const verifyRes = await fetch("{{ url_for('shop.verify_payment') }}", {
+                                  method: 'POST',
+                                  headers: {'Content-Type': 'application/json'},
+                                  body: JSON.stringify({
+                                      razorpay_payment_id: response.razorpay_payment_id,
+                                      type: type
+                                  })
+                              });
+                              const result = await verifyRes.json();
+                              if (result.status === 'success') {
+                                  window.location.reload();
+                              } else {
+                                  alert("Verification failed on server.");
+                                  if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+                              }
+                          } catch (vErr) {
+                              alert("Payment verification failed.");
+                              if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+                          }
+                      },
+                      "modal": { "ondismiss": function() { if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; } } },
+                      "theme": { "color": "#4CAF50" }
+                  };
+
+                  const rzp = new Razorpay(rzpOptions);
+                  rzp.open();
+              } catch (err) {
+                  console.error("Razorpay Error:", err);
+                  alert("Payment Error: " + err.message);
+                  if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+              }
+          };
+      })();
+    </script>
+</body>
+</html>

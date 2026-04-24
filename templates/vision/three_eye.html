@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}3 EYE - Cloud Guard{% endblock %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="min-h-screen bg-[#05070a] text-white flex flex-col items-center justify-center p-6 pb-20 overflow-hidden font-mono">
+    
+    <!-- Header -->
+    <div class="text-center mb-10 w-full max-w-4xl flex justify-between items-end border-b border-white/10 pb-4">
+        <div>
+            <h1 class="text-4xl font-black tracking-tighter text-[#00ff88]">3-EYE CLOUD GUARD</h1>
+            <p class="text-[10px] text-gray-500 uppercase tracking-[0.5em]">Sector: Agri-Property Alpha</p>
+        </div>
+        <div class="flex gap-4">
+            <div class="text-right">
+                <p class="text-[8px] text-gray-600 uppercase">Uplink Status</p>
+                <p id="uplink-status" class="text-[10px] text-yellow-500 animate-pulse">CONNECTING...</p>
+            </div>
+            <div id="heartbeat" class="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center">
+                <div class="w-2 h-2 bg-[#00ff88] rounded-full animate-ping"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Intrusion Banner -->
+    <div id="alert-banner" class="fixed inset-0 bg-red-600/90 z-[100] hidden flex-col items-center justify-center pointer-events-none">
+        <h2 class="text-[150px] font-black tracking-tighter leading-none animate-bounce">INTRUSION</h2>
+        <p id="threat-name" class="text-6xl font-bold uppercase mt-4 underline decoration-4 underline-offset-8">MONKEY DETECTED</p>
+        <p class="mt-12 text-2xl font-black uppercase tracking-[1em] opacity-50">Local Alarm Triggered</p>
+    </div>
+
+    <!-- Tactical Display -->
+    <div class="grid lg:grid-cols-3 gap-8 w-full max-w-7xl items-start">
+        
+        <!-- Live Stream -->
+        <div class="lg:col-span-2 relative group">
+            <div class="absolute inset-0 border-4 border-[#00ff88]/20 group-hover:border-[#00ff88]/50 transition-all rounded-[40px] pointer-events-none z-10"></div>
+            <div class="bg-black rounded-[40px] overflow-hidden aspect-video shadow-2xl relative">
+                <video id="webcam" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                <canvas id="snapshot-canvas" class="hidden"></canvas>
+                
+                <!-- Viewfinder Overlay -->
+                <div class="absolute inset-4 border border-white/5 rounded-[30px] pointer-events-none p-6 flex flex-col justify-between">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 bg-red-600 rounded-full"></div>
+                            <span class="text-[10px] opacity-70">CLOUD // FEED_01</span>
+                        </div>
+                        <div id="cam-timestamp" class="text-[10px] opacity-30">00:00:00:000</div>
+                    </div>
+                    <div class="flex justify-center opacity-10">
+                        <i class="fa-solid fa-crosshairs text-6xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Log -->
+        <div class="bg-white/5 border border-white/10 rounded-[32px] p-6 h-[400px] flex flex-col">
+            <h3 class="text-[10px] font-black text-gray-500 mb-6 border-b border-white/10 pb-4 uppercase tracking-widest">Cloud Brain Log</h3>
+            <div id="log-content" class="flex-grow space-y-3 overflow-y-auto pr-2 custom-scrollbar text-[10px]">
+                <p class="text-blue-400 opacity-50">[SYSTEM] Initialization started...</p>
+                <p class="text-blue-400 opacity-50">[SYSTEM] Waiting for camera...</p>
+            </div>
+            <div class="mt-6 p-4 bg-white/5 rounded-2xl">
+                <div class="flex justify-between items-center text-[8px] text-gray-500 mb-2">
+                    <span>UPSTREAM DATA (JSON)</span>
+                    <span id="load-time">0ms</span>
+                </div>
+                <div class="w-full bg-gray-900 h-1 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="w-0 bg-[#00ff88] h-full transition-all"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('snapshot-canvas');
+    const ctx = canvas.getContext('2d');
+    const log = document.getElementById('log-content');
+    const alertBanner = document.getElementById('alert-banner');
+    const threatText = document.getElementById('threat-name');
+    const statusText = document.getElementById('uplink-status');
+
+    async function initCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment", width: 640, height: 480 }, 
+                audio: false 
+            });
+            video.srcObject = stream;
+            addLog("[SYSTEM] Camera synchronized.", "text-blue-400");
+            statusText.innerText = "ACTIVE // UPLINK_STABLE";
+            statusText.classList.replace("text-yellow-500", "text-[#00ff88]");
+            
+            // Start the 1.5s scanning loop
+            setInterval(captureAndSend, 1500);
+        } catch (e) {
+            addLog("[CRITICAL] Camera access denied.", "text-red-500");
+        }
+    }
+
+    async function captureAndSend() {
+        // Capture frame
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        
+        // Compress to JPEG (for speed and low memory on server)
+        const frameData = canvas.toDataURL('image/jpeg', 0.6);
+        
+        const startTime = Date.now();
+        document.getElementById('progress-bar').style.width = "50%";
+
+        try {
+            const response = await fetch("{{ url_for('vision.process_frame') }}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ image: frameData })
+            });
+            const data = await response.json();
+            
+            const lat = Date.now() - startTime;
+            document.getElementById('load-time').innerText = `${lat}ms`;
+            document.getElementById('progress-bar').style.width = "100%";
+
+            if (data.found) {
+                showIntrusion(data.class);
+                addLog(`[ALERT] ${data.class.toUpperCase()} DETECTED! Alarm triggered.`, "text-red-500");
+            } else {
+                hideIntrusion();
+                addLog(`[CLOUD] Scan complete. No threats found. (${lat}ms)`, "text-gray-500");
+            }
+        } catch (err) {
+            addLog("[CLOUD] Link interrupted. Reconnecting...", "text-yellow-500");
+        }
+    }
+
+    function showIntrusion(name) {
+        alertBanner.classList.remove('hidden');
+        threatText.innerText = `${name.toUpperCase()} DETECTED`;
+        document.body.style.backgroundColor = "#450a0a";
+    }
+
+    function hideIntrusion() {
+        alertBanner.classList.add('hidden');
+        document.body.style.backgroundColor = "#05070a";
+    }
+
+    function addLog(msg, colorClass) {
+        const p = document.createElement('p');
+        p.className = `${colorClass} opacity-80`;
+        p.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        log.prepend(p);
+        if (log.children.length > 50) log.removeChild(log.lastChild);
+    }
+
+    setInterval(() => {
+        document.getElementById('cam-timestamp').innerText = new Date().getTime();
+    }, 50);
+
+    initCamera();
+</script>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+</style>
+{% endblock %}

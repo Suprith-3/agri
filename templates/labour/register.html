@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Labour Registration{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #reg-map {
+        height: 350px; 
+        border-radius: 15px; 
+        border: 1px solid var(--border-glass); 
+        position: relative; 
+        z-index: 1;
+    }
+    /* Ensure tiles don't leak out */
+    .leaflet-container {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-end mb-5" data-aos="fade-down">
+            <div>
+                <h2 class="display-5 fw-bold gradient-text mb-2">Register as Labour</h2>
+                <p class="text-secondary mb-0">List your skills and availability to connect with local farmers.</p>
+            </div>
+            <a href="{{ url_for('labour.find_labour') }}" class="btn btn-outline-glow btn-sm px-4">Find Jobs</a>
+        </div>
+
+        <div class="glass-card p-4 p-md-5 mb-5" data-aos="fade-up">
+            <form method="POST">
+                <input type="hidden" name="lat" id="latInput" value="{{ existing.lat if existing else '' }}">
+                <input type="hidden" name="lng" id="lngInput" value="{{ existing.lng if existing else '' }}">
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Type of Work</label>
+                        <select name="work_type" class="form-select" required>
+                            <option value="" disabled {{ 'selected' if not existing }}>Choose your skill...</option>
+                            <option value="Harvesting" {{ 'selected' if existing and existing.work_type == 'Harvesting' }}>Harvesting</option>
+                            <option value="Plowing" {{ 'selected' if existing and existing.work_type == 'Plowing' }}>Plowing</option>
+                            <option value="Sowing" {{ 'selected' if existing and existing.work_type == 'Sowing' }}>Sowing</option>
+                            <option value="Irrigation" {{ 'selected' if existing and existing.work_type == 'Irrigation' }}>Irrigation</option>
+                            <option value="General Farm Labour" {{ 'selected' if existing and existing.work_type == 'General Farm Labour' }}>General Farm Labour</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Daily Wage (₹)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-glass text-secondary">₹</span>
+                            <input type="number" name="daily_wage" class="form-control border-start-0" required placeholder="500" value="{{ existing.daily_wage if existing else '' }}">
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Contact Phone</label>
+                        <input type="text" name="phone" class="form-control" required value="{{ existing.phone if existing else current_user.phone }}">
+                    </div>
+
+                    <div class="col-12 mt-4">
+                        <label class="form-label fw-bold text-dark"><i class="fa-solid fa-location-crosshairs me-2 text-success"></i> Your Live Location</label>
+                        <p class="text-secondary small mb-3">Farmers will see your location on the map to contact you for nearby work.</p>
+                        <div id="reg-map"></div>
+                        <div class="mt-2 d-flex justify-content-between">
+                            <button type="button" id="detectLoc" class="btn btn-sm btn-outline-success border-glass rounded-pill px-3">
+                                <i class="fa-solid fa-crosshairs me-2"></i> Detect My Live Location
+                            </button>
+                            <span id="locStatus" class="small text-secondary"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-5">
+                        <button type="submit" class="btn btn-primary-glow w-100 py-3">
+                            <span><i class="fa-solid fa-check-circle me-2"></i> {{ 'Update Profile' if existing else 'Register Now' }}</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    (function() {
+        // Use a function scope to avoid re-declaration issues on HTMX swaps
+        const initMap = () => {
+            const latInput = document.getElementById('latInput');
+            const lngInput = document.getElementById('lngInput');
+            const locStatus = document.getElementById('locStatus');
+            const mapContainer = document.getElementById('reg-map');
+            
+            if (!mapContainer || mapContainer._leaflet_id) return;
+
+            const map = L.map('reg-map', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([20.5937, 78.9629], 5);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
+            }).addTo(map);
+
+            let marker = null;
+
+            function updateMarker(lat, lng, zoom = 15) {
+                if (marker) map.removeLayer(marker);
+                marker = L.marker([lat, lng]).addTo(map);
+                latInput.value = lat;
+                lngInput.value = lng;
+                map.setView([lat, lng], zoom);
+            }
+
+            if(latInput.value && lngInput.value) {
+                updateMarker(parseFloat(latInput.value), parseFloat(lngInput.value), 15);
+            }
+
+            map.on('click', function(e) {
+                updateMarker(e.latlng.lat, e.latlng.lng, map.getZoom());
+                locStatus.textContent = "Location pinned manually";
+            });
+
+            document.getElementById('detectLoc').addEventListener('click', function() {
+                locStatus.textContent = "Detecting...";
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(p => {
+                        updateMarker(p.coords.latitude, p.coords.longitude, 16);
+                        locStatus.textContent = "Live location detected!";
+                    }, () => {
+                        locStatus.textContent = "Permission denied or error.";
+                    });
+                }
+            });
+
+            // Re-invalidate size to ensure tiles are correct
+            setTimeout(() => { map.invalidateSize(); }, 100);
+            setTimeout(() => { map.invalidateSize(); }, 500);
+        };
+
+        if (document.readyState === 'complete') {
+            initMap();
+        } else {
+            window.addEventListener('load', initMap);
+        }
+        
+        // HTMX compatibility
+        document.body.addEventListener('htmx:afterOnLoad', initMap);
+    })();
+</script>
+{% endblock %}
+

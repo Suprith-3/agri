@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="rental-header mb-5" data-aos="fade-down">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h1 class="display-5 fw-bold text-gradient"><i class="fa-solid fa-key"></i> Agri-Rent Hub</h1>
+            <p class="text-muted">Safe and Verified Machinery Rentals for Every Season</p>
+        </div>
+        <div class="d-flex gap-3">
+            {% if not verification %}
+            <a href="{{ url_for('rental.verify_identity') }}" class="btn btn-warning px-4 rounded-pill shadow">
+                <i class="fa-solid fa-shield-halved"></i> Get Verified to Rent
+            </a>
+            {% endif %}
+            <a href="{{ url_for('rental.list_item') }}" class="btn btn-primary px-4 rounded-pill shadow">
+                <i class="fa-solid fa-plus"></i> List Equipment
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if not verification %}
+<div class="alert alert-info border-0 shadow-sm rounded-4 p-4 mb-5" data-aos="zoom-in">
+    <div class="d-flex align-items-center gap-4">
+        <i class="fa-solid fa-lock fa-3x text-info"></i>
+        <div>
+            <h5 class="fw-bold mb-1">Identity Verification Required</h5>
+            <p class="mb-0">To ensure safety, you must upload your **Driving License** and **Aadhar Card** before you can book any equipment.</p>
+        </div>
+        <a href="{{ url_for('rental.verify_identity') }}" class="btn btn-info text-white ms-auto rounded-pill px-4">Verify Now</a>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+    {% for item in items %}
+    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="{{ loop.index * 100 }}">
+        <div class="glass-card h-100 overflow-hidden d-flex flex-column border-0 shadow-sm hover-up">
+            <div class="position-relative">
+                <img src="{{ item.image_url }}" class="w-100" style="height: 200px; object-fit: cover;" alt="{{ item.name }}">
+                <div class="badge bg-primary position-absolute top-0 end-0 m-3">{{ item.category }}</div>
+            </div>
+            <div class="p-4 flex-grow-1">
+                <h5 class="fw-bold mb-1">{{ item.name }}</h5>
+                <p class="text-muted small mb-3">{{ item.description[:100] }}...</p>
+                
+                <div class="pricing-grid bg-light p-3 rounded-4 mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small text-secondary">Hourly Rate</span>
+                        <span class="fw-bold text-success">₹{{ item.hourly_rate }} / hr</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="small text-secondary">Daily Rate</span>
+                        <span class="fw-bold text-primary">₹{{ item.daily_rate }} / day</span>
+                    </div>
+                </div>
+
+                <form action="{{ url_for('rental.book_item', item_id=item.id) }}" method="POST">
+                    <button type="submit" class="btn btn-outline-primary w-100 rounded-pill py-2 fw-bold" {% if not verification %}disabled{% endif %}>
+                        <i class="fa-solid fa-calendar-check me-2"></i> Book Rental
+                    </button>
+                    {% if not verification %}
+                    <small class="text-danger d-block text-center mt-2" style="font-size: 0.7rem;">Verification Required</small>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <i class="fa-solid fa-tractor fa-4x text-muted mb-3 opacity-50"></i>
+        <h3>No equipment listed yet.</h3>
+        <p class="text-muted">Be the first to list your machinery for extra income!</p>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .hover-up:hover { transform: translateY(-10px); transition: transform 0.3s ease; }
+    .text-gradient { background: linear-gradient(90deg, #2196F3, #4CAF50); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+</style>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Mesh background for hero */
+    .hero-section {
+        background: 
+            radial-gradient(circle at 50% 50%, rgba(76, 175, 80, 0.1), transparent 80%),
+            linear-gradient(rgba(10, 15, 10, 0.7), rgba(10, 15, 10, 0.7)),
+            url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    .typewriter-cursor {
+        display: inline-block;
+        width: 3px;
+        height: 1.2em;
+        background-color: var(--primary-glow);
+        margin-left: 5px;
+        animation: blink 0.8s infinite;
+        vertical-align: middle;
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-section text-center px-4 rounded-glow" data-aos="fade-zoom-in">
+    <div class="position-relative z-1 py-5">
+        <h1 class="display-3 fw-bold mb-4 gradient-text" data-aos="fade-up">AgriSmart: Empowering the Future of Farming</h1>
+        <h2 class="h3 mb-5 text-dark opacity-90 mx-auto" style="max-width: 800px;" data-aos="fade-up" data-aos-delay="100">
+            Automating <span id="typewriter" aria-hidden="true"></span><span class="typewriter-cursor" aria-hidden="true"></span>
+        </h2>
+        <p class="lead mb-5 text-secondary mx-auto" style="max-width: 700px;" data-aos="fade-up" data-aos-delay="150">
+            BHOOMITRA combines Artificial Intelligence, accurate predictions, and a transparent farmer-to-buyer marketplace to optimize your yield and profits. Get personalized AI advice for your farm today.
+        </p>
+        
+        <div class="d-flex justify-content-center gap-4 flex-wrap" data-aos="fade-up" data-aos-delay="200">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard.home') }}" class="btn btn-primary-glow"><span>Go to Dashboard</span></a>
+            {% else %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary-glow"><span>Join as Farmer</span></a>
+                <a href="{{ url_for('marketplace.browse') }}" class="btn btn-outline-glow">Browse Market</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<div class="row g-4 py-5 row-cols-1 row-cols-md-2 row-cols-xl-4">
+    <div class="col" data-aos="fade-up" data-aos-delay="0">
+        <div class="glass-card d-flex flex-column align-items-center text-center p-5 h-100">
+            <div class="feature-icon-wrapper"><i class="fa-solid fa-camera-retro"></i></div>
+            <h3 class="h4 text-dark mb-4">AI Disease Detection</h3>
+            <p class="text-secondary mb-4">Upload a photo of your diseased plant and get instant AI diagnosis along with complete treatment recommendations using organic or chemical methods.</p>
+            <a href="{{ url_for('disease.detect') }}" class="mt-auto fw-bold text-success text-decoration-none hover-glow">Try it out &rarr;</a>
+        </div>
+    </div>
+    
+    <div class="col" data-aos="fade-up" data-aos-delay="100">
+        <div class="glass-card d-flex flex-column align-items-center text-center p-5 h-100">
+            <div class="feature-icon-wrapper" style="border-color: rgba(76, 175, 80, 0.3); background: rgba(76, 175, 80, 0.1);"><i class="fa-solid fa-route text-success"></i></div>
+            <h3 class="h4 text-dark mb-4">Smart Roadmap</h3>
+            <p class="text-secondary mb-4">Get a comprehensive, day-by-day AI-generated guide for your crop, including fertilization, watering, and pest schedules.</p>
+            <a href="{{ url_for('roadmap.index') }}" class="mt-auto fw-bold text-success text-decoration-none hover-glow">Generate Guide &rarr;</a>
+        </div>
+    </div>
+
+    <div class="col" data-aos="fade-up" data-aos-delay="200">
+        <div class="glass-card d-flex flex-column align-items-center text-center p-5 h-100">
+            <div class="feature-icon-wrapper"><i class="fa-solid fa-chart-pie"></i></div>
+            <h3 class="h4 text-dark mb-4">Market Prediction</h3>
+            <p class="text-secondary mb-4">Stop guessing prices. Use our machine learning models to forecast future crop prices and yield based on soil, location, and climate data.</p>
+            <a href="{{ url_for('prediction.price') }}" class="mt-auto fw-bold text-success text-decoration-none hover-glow">Predict Price &rarr;</a>
+        </div>
+    </div>
+    
+    <div class="col" data-aos="fade-up" data-aos-delay="300">
+        <div class="glass-card d-flex flex-column align-items-center text-center p-5 h-100">
+            <div class="feature-icon-wrapper"><i class="fa-solid fa-comments"></i></div>
+            <h3 class="h4 text-dark mb-4">Ask BHOOMITRA AI</h3>
+            <p class="text-secondary mb-4">Have a quick question about fertilizer mixing, govt. schemes, or organic farming? Chat directly with our Gemini-powered smart assistant.</p>
+            <a href="{{ url_for('chatbot.chat') }}" class="mt-auto fw-bold text-success text-decoration-none hover-glow">Chat Now &rarr;</a>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card p-5 mb-5 mt-5" data-aos="fade-up">
+    <div class="container-fluid py-4 text-center">
+        <h2 class="display-5 fw-bold gradient-text mb-4">Direct Farmer Marketplace</h2>
+        <p class="opacity-80 mt-3 mx-auto mb-5" style="max-width: 700px;">Cut out the middlemen. Sell your fresh harvest directly to buyers, distributors, or consumers. Browse listings or add your own.</p>
+        <a class="btn btn-primary-glow btn-lg px-5 shadow-lg" href="{{ url_for('marketplace.browse') }}"><span>Explore Market</span></a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Using var to allow re-declaration during HTMX navigation
+    var phrases = phrases || ["Smart Farming", "AI Disease Detection", "Price Predictions", "Digital Marketplace"];
+    var elTyped = document.getElementById('typewriter');
+    var phraseIdx = 0;
+    var charIdx = 0;
+    var isDeleting = false;
+    var typeSpeed = 100;
+    var typewriterStarted = typewriterStarted || false;
+
+    function typeEffect() {
+        if (!document.getElementById('typewriter')) return; // Guard for non-home pages
+        
+        var currentPhrase = phrases[phraseIdx];
+        var el = document.getElementById('typewriter');
+        
+        if (isDeleting) {
+            el.textContent = currentPhrase.substring(0, charIdx - 1);
+            charIdx--;
+            typeSpeed = 50;
+        } else {
+            el.textContent = currentPhrase.substring(0, charIdx + 1);
+            charIdx++;
+            typeSpeed = 100;
+        }
+
+        if (!isDeleting && charIdx === currentPhrase.length) {
+            isDeleting = true;
+            typeSpeed = 2000;
+        } else if (isDeleting && charIdx === 0) {
+            isDeleting = false;
+            phraseIdx = (phraseIdx + 1) % phrases.length;
+            typeSpeed = 500;
+        }
+
+        setTimeout(typeEffect, typeSpeed);
+    }
+
+    if (!typewriterStarted) {
+        typewriterStarted = true;
+        document.addEventListener('DOMContentLoaded', typeEffect);
+        // Also trigger on HTMX swaps
+        document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+            if (document.getElementById('typewriter')) {
+                typeEffect();
+            }
+        });
+    }
+</script>
+{% endblock %}

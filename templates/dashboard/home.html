@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1 gradient-text">Hi, {{ user.name.split()[0] }}! 👋</h2>
+        <p class="text-secondary mb-0"><i class="fa-solid fa-location-dot me-2"></i>{{ user.district }}, {{ user.state }}</p>
+    </div>
+    
+    <!-- Weather Widget Mini -->
+    {% if weather_data %}
+    <div class="glass-card px-4 py-2 border-glow d-flex align-items-center gap-3">
+        <img src="http://openweathermap.org/img/wn/{{ weather_data.icon }}@2x.png" width="45" alt="weather" class="filter-glow">
+        <div>
+            <div class="fw-bold text-dark fs-5">{{ weather_data.temp }}°C</div>
+            <div class="small text-secondary text-capitalize" style="line-height:1">{{ weather_data.condition }}</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Top Stats Row -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3 col-sm-6" data-aos="fade-up" data-aos-delay="0">
+        <div class="stat-card glass-card h-100">
+            <div class="feature-icon-wrapper mx-auto mb-3"><i class="fa-solid fa-store"></i></div>
+            <h5 class="stat-number mb-1" data-count="{{ stats.listings }}">0</h5>
+            <span class="text-secondary small">My Market Listings</span>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6" data-aos="fade-up" data-aos-delay="150">
+        <div class="stat-card glass-card h-100">
+            <div class="feature-icon-wrapper mx-auto mb-3" style="border-color: rgba(33,150,243,0.3); background: rgba(33,150,243,0.1);"><i class="fa-solid fa-chart-line text-info"></i></div>
+            <h5 class="stat-number mb-1" data-count="{{ stats.predictions }}" style="background: linear-gradient(135deg, #2196F3, #00BCD4); -webkit-background-clip: text;">0</h5>
+            <span class="text-secondary small">Predictions Made</span>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6" data-aos="fade-up" data-aos-delay="300">
+        <div class="stat-card glass-card h-100">
+            <div class="feature-icon-wrapper mx-auto mb-3" style="border-color: rgba(244,67,54,0.3); background: rgba(244,67,54,0.1);"><i class="fa-solid fa-microscope text-danger"></i></div>
+            <h5 class="stat-number mb-1" data-count="{{ stats.diseases }}" style="background: linear-gradient(135deg, #F44336, #E91E63); -webkit-background-clip: text;">0</h5>
+            <span class="text-secondary small">Diseases Diagnosed</span>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6" data-aos="fade-up" data-aos-delay="450">
+        <div class="stat-card glass-card h-100">
+            <div class="feature-icon-wrapper mx-auto mb-3" style="border-color: rgba(255,152,0,0.3); background: rgba(255,152,0,0.1);"><i class="fa-solid fa-robot text-warning"></i></div>
+            <h5 class="stat-number mb-1" data-count="{{ stats.chats }}" style="background: linear-gradient(135deg, #FF9800, #FFC107); -webkit-background-clip: text;">0</h5>
+            <span class="text-secondary small">AI Chats</span>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Action Buttons -->
+<div class="glass-card mb-5 p-4 dashboard-quick-actions" data-aos="fade-up" data-aos-delay="100">
+    <h6 class="text-secondary fw-bold text-uppercase mb-4 small letter-spacing-1">Quick Actions</h6>
+    <div class="d-flex flex-wrap gap-3">
+        <a href="{{ url_for('disease.detect') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-camera me-2"></i>Detect Disease</a>
+        <a href="{{ url_for('dashboard.my_orders') }}" class="btn btn-outline-glow flex-fill py-3" style="border-color: rgba(255, 64, 129, 0.4);"><i class="fa-solid fa-truck-fast me-2 text-primary"></i>Track My Orders</a>
+        <a href="{{ url_for('chatbot.chat') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-robot me-2"></i>Ask AgriBot</a>
+        <a href="{{ url_for('prediction.price') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-chart-bar me-2"></i>Price Forecast</a>
+        <a href="{{ url_for('prediction.yield_prediction') }}" class="btn btn-outline-glow flex-fill py-3" style="border-color: rgba(46, 125, 50, 0.6);"><i class="fa-solid fa-sack-dollar me-2 text-success"></i>Yield & Profit</a>
+        <a href="{{ url_for('marketplace.add_listing') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-plus-circle me-2"></i>Sell Produce</a>
+        <a href="{{ url_for('marketplace.map_view') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-location-dot me-2"></i>Find Crop</a>
+        <a href="{{ url_for('labour.find_labour') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-users me-2"></i>Find Labour</a>
+        <a href="{{ url_for('shop.public_shop') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-cart-shopping me-2"></i>Online Shopping</a>
+        <a href="{{ url_for('shop.dashboard') }}" class="btn btn-outline-glow flex-fill py-3 position-relative">
+            <i class="fa-solid fa-store me-2"></i>
+            {% if not user_shop or not user_shop.is_active %}
+                Manage Shop <span class="badge bg-success bg-opacity-75 ms-2" style="font-size: 0.6rem;">₹1 UNLOCK</span>
+            {% else %}
+                Manage Shop
+            {% endif %}
+        </a>
+        <a href="{{ url_for('schemes.scheme_list') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Govt. Schemes</a>
+        <a href="{{ url_for('roadmap.index') }}" class="btn btn-outline-glow flex-fill py-3" style="border-color: rgba(76, 175, 80, 0.5);"><i class="fa-solid fa-route me-2 text-success"></i>Farming Roadmap</a>
+        <a href="{{ url_for('gov_mitra.dashboard') }}" class="btn btn-outline-glow flex-fill py-3" style="border-color: rgba(0, 188, 212, 0.6);"><i class="fa-solid fa-building-columns me-2 text-info"></i>Gov Mitra</a>
+        <a href="{{ url_for('education.home') }}" class="btn btn-outline-glow flex-fill py-3" style="border-color: rgba(76, 175, 80, 0.6);"><i class="fa-solid fa-graduation-cap me-2 text-success"></i>Learn how to grow</a>
+        <a href="{{ url_for('rental.home') }}" class="btn btn-outline-glow flex-fill py-3" style="border-color: rgba(33, 150, 243, 0.6);"><i class="fa-solid fa-key me-2 text-primary"></i>Rent Item</a>
+        <a href="{{ url_for('goat.home') }}" class="btn btn-outline-glow flex-fill py-3" style="border-color: rgba(255, 193, 7, 0.6);"><i class="fa-solid fa-medal me-2 text-warning"></i>Learn with GOAT</a>
+        <a href="{{ url_for('vision.three_eye') }}" class="btn btn-outline-glow flex-fill py-3" style="border-color: rgba(0, 255, 136, 0.6);"><i class="fa-solid fa-eye me-2 text-success"></i>3 EYE Vision</a>
+        <a href="{{ url_for('fertilizer.scan') }}" class="btn btn-outline-glow flex-fill py-3" style="border-color: rgba(33, 150, 243, 0.5);"><i class="fa-solid fa-flask me-2 text-info"></i>Fertilizer Scan</a>
+    </div>
+</div>
+
+<!-- Charts & Feed Row -->
+<div class="row g-4 mb-5">
+    <div class="col-lg-8" data-aos="fade-right" data-aos-delay="200">
+        <div class="glass-card h-100 p-4" style="border-top: 3px solid var(--primary-glow);">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-chart-line text-success me-2"></i>Live Crop Price Index</h5>
+                <span class="badge-glow">Real-time (₹/q)</span>
+            </div>
+            <div style="height: 350px;">
+                <canvas id="dashboardChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4" data-aos="fade-left" data-aos-delay="200">
+        <div class="glass-card h-100 p-4">
+            <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-clock-rotate-left text-success me-2"></i>Recent Activity</h5>
+            <div class="overflow-auto" style="max-height: 400px;">
+                <ul class="list-group list-group-flush bg-transparent">
+                    {% if recent_diseases %}
+                        <li class="list-group-item bg-transparent text-secondary small fw-bold px-0 border-secondary opacity-50">Recent Diagnoses</li>
+                        {% for d in recent_diseases %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 bg-transparent border-glass">
+                            <div class="text-dark">
+                                <i class="fa-solid fa-leaf text-danger me-2"></i> {{ d.disease_name }}
+                            </div>
+                            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25 rounded-pill px-3">{{ (d.confidence*100)|round }}%</span>
+                        </li>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if my_listings %}
+                        <li class="list-group-item bg-transparent text-secondary small fw-bold px-0 border-secondary opacity-50 mt-3">Latest Listings</li>
+                        {% for l in my_listings %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 bg-transparent border-glass">
+                            <div class="text-dark">
+                                <i class="fa-solid fa-basket-shopping text-warning me-2"></i> {{ l.crop_name }}
+                            </div>
+                            <span class="text-success fw-bold">₹{{ l.price }}</span>
+                        </li>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if not recent_diseases and not my_listings %}
+                        <li class="list-group-item text-center text-secondary border-0 py-5 bg-transparent">
+                            <i class="fa-solid fa-otter fa-3x mb-3 opacity-20"></i><br>
+                            It's quiet here. Try running a prediction or starting a chat!
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var initChart = function() {
+        var canvas = document.getElementById('dashboardChart');
+        if (!canvas) return;
+        var ctx = canvas.getContext('2d');
+        
+        // Use var for re-declaration safety
+        Chart.defaults.color = '#111111';
+        Chart.defaults.borderColor = 'rgba(0,0,0,0.08)';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        var labels = {{ price_labels|tojson if price_labels else [] }};
+        var series = {{ price_series|tojson if price_series else {} }};
+
+        var gradient1 = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient1.addColorStop(0, 'rgba(233, 30, 99, 0.4)');
+        gradient1.addColorStop(1, 'rgba(233, 30, 99, 0)');
+
+        var gradient2 = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient2.addColorStop(0, 'rgba(255, 152, 0, 0.4)');
+        gradient2.addColorStop(1, 'rgba(255, 152, 0, 0)');
+
+        var gradient3 = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient3.addColorStop(0, 'rgba(76, 175, 80, 0.4)');
+        gradient3.addColorStop(1, 'rgba(76, 175, 80, 0)');
+
+        // Check if chart instance exists on this canvas
+        if (window.myDashboardChart) {
+            window.myDashboardChart.destroy();
+        }
+
+        window.myDashboardChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Ragi',
+                        data: series.ragi || [],
+                        borderColor: '#E91E63',
+                        backgroundColor: gradient1,
+                        fill: true,
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#E91E63'
+                    },
+                    {
+                        label: 'Rice',
+                        data: series.rice || [],
+                        borderColor: '#FF9800',
+                        backgroundColor: gradient2,
+                        fill: true,
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#FF9800'
+                    },
+                    {
+                        label: 'Wheat',
+                        data: series.wheat || [],
+                        borderColor: '#4CAF50',
+                        backgroundColor: gradient3,
+                        fill: true,
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#4CAF50'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 1200, easing: 'easeInOutQuart' },
+                plugins: {
+                    legend: { position: 'top', labels: { color: '#000000', usePointStyle: true, padding: 20 } },
+                    tooltip: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#000000',
+                        bodyColor: '#222222',
+                        borderColor: 'rgba(0,0,0,0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.dataset.label}: ₹${context.parsed.y.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: false, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#444444' } },
+                    x: { grid: { display: false }, ticks: { color: '#444444' } }
+                }
+            }
+        });
+    };
+
+    // Run on load and HTMX swaps
+    initChart();
+    document.body.addEventListener('htmx:afterOnLoad', initChart);
+})();
+</script>
+{% endblock %}

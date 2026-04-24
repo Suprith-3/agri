@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Verify Registration OTP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .otp-input-container {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+    .otp-box {
+        width: 50px;
+        height: 60px;
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-sm);
+        color: var(--primary-glow);
+        transition: var(--transition);
+        outline: none;
+    }
+    .otp-box:focus {
+        border-color: var(--primary-glow);
+        background: rgba(76, 175, 80, 0.1);
+        box-shadow: 0 0 15px rgba(76, 175, 80, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card text-center" data-aos="zoom-in">
+        <div class="feature-icon-wrapper mx-auto mb-4" style="width: 80px; height: 80px; font-size: 2.5rem;">
+            <i class="fa-solid fa-envelope-open-text gradient-text"></i>
+        </div>
+        <h3 class="fw-bold text-white mb-3">Verify Your Email</h3>
+        <p class="text-secondary mb-5 px-3">We've sent a 6-digit OTP to the email you provided. Please enter it below to complete registration. (Valid for 10 min)</p>
+        
+        <form id="otp-form" method="POST" action="{{ url_for('auth.otp_verify') }}" data-aos="fade-up" data-aos-delay="100">
+            <!-- Hidden input to store combined 6-digit OTP as required by backend -->
+            <input type="hidden" name="otp" id="final-otp">
+            
+            <div class="otp-input-container">
+                <input type="text" class="otp-box" maxlength="1" pattern="\d*" inputmode="numeric">
+                <input type="text" class="otp-box" maxlength="1" pattern="\d*" inputmode="numeric">
+                <input type="text" class="otp-box" maxlength="1" pattern="\d*" inputmode="numeric">
+                <input type="text" class="otp-box" maxlength="1" pattern="\d*" inputmode="numeric">
+                <input type="text" class="otp-box" maxlength="1" pattern="\d*" inputmode="numeric">
+                <input type="text" class="otp-box" maxlength="1" pattern="\d*" inputmode="numeric">
+            </div>
+
+            <button type="submit" class="btn btn-primary-glow w-100 py-3 mt-4">
+                <span>Verify Account <i class="fa-solid fa-circle-check ms-2"></i></span>
+            </button>
+        </form>
+        
+        <div class="text-center mt-5" data-aos="fade-up" data-aos-delay="200">
+            <a href="{{ url_for('auth.register') }}" class="text-secondary text-decoration-none small hover-glow"><i class="fa-solid fa-arrow-left me-2"></i> Start Over</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const boxes = document.querySelectorAll('.otp-box');
+        const finalInput = document.getElementById('final-otp');
+        const form = document.getElementById('otp-form');
+
+        boxes.forEach((box, index) => {
+            // Handle typing
+            box.addEventListener('input', (e) => {
+                const val = e.data || e.target.value;
+                if (!val) return;
+
+                // Move to next box
+                if (index < boxes.length - 1) {
+                    boxes[index + 1].focus();
+                }
+                updateFinalOtp();
+            });
+
+            // Handle backspace
+            box.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !box.value && index > 0) {
+                    boxes[index - 1].focus();
+                }
+            });
+
+            // Handle paste
+            box.addEventListener('paste', (e) => {
+                const data = e.clipboardData.getData('text').slice(0, 6);
+                if (data.length === 6 && /^\d+$/.test(data)) {
+                    data.split('').forEach((char, i) => {
+                        boxes[i].value = char;
+                    });
+                    boxes[5].focus();
+                    updateFinalOtp();
+                }
+            });
+        });
+
+        function updateFinalOtp() {
+            let combined = '';
+            boxes.forEach(box => combined += box.value);
+            finalInput.value = combined;
+        }
+
+        form.addEventListener('submit', (e) => {
+            updateFinalOtp();
+            if (finalInput.value.length !== 6) {
+                e.preventDefault();
+                alert('Please enter all 6 digits of the OTP.');
+            }
+        });
+    });
+</script>
+{% endblock %}

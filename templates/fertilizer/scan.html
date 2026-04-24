@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Fertilizer Scanner{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-zone {
+        border: 2px dashed rgba(76, 175, 80, 0.4);
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: var(--radius-lg);
+        padding: 3rem 2rem;
+        transition: var(--transition);
+        cursor: pointer;
+        position: relative;
+    }
+    .upload-zone:hover {
+        border-color: var(--primary-glow);
+        background: rgba(76, 175, 80, 0.08);
+    }
+    .camera-preview-container {
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        border: 1px solid var(--border-glass);
+        box-shadow: var(--shadow-green);
+        background: #000;
+    }
+    #webcam {
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+    }
+    .result-heading {
+        color: var(--primary-glow);
+        margin-top: 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9 col-lg-8">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="display-5 fw-bold gradient-text mb-3">AI Fertilizer Scanner</h2>
+            <p class="text-secondary mx-auto" style="max-width: 600px;">Scan any fertilizer package to instantly identify its NPK ratio, safety profile, and recommended dosage using Gemini AI vision.</p>
+        </div>
+        
+        <div class="glass-card p-4 p-md-5 mb-5" data-aos="fade-up">
+            {% if not result_data %}
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0 fw-bold text-white"><i class="fa-solid fa-flask-vial me-2 text-success"></i> Scan Product</h5>
+                <button type="button" class="btn btn-outline-glow btn-sm" id="openCameraBtn">
+                    <i class="fa-solid fa-camera me-1"></i> Use Camera
+                </button>
+            </div>
+            
+            <div id="camera-section" class="d-none text-center mb-4">
+                <div class="camera-preview-container mb-3">
+                    <video id="webcam" autoplay playsinline></video>
+                    <canvas id="canvas" class="d-none"></canvas>
+                </div>
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-primary-glow" id="captureBtn"><span><i class="fa-solid fa-camera-viewfinder me-2"></i> Capture Product</span></button>
+                    <button type="button" class="btn btn-outline-glow" id="closeCameraBtn">Cancel</button>
+                </div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="scanForm">
+                <div id="upload-section">
+                    <div class="upload-zone text-center" id="dropZone" onclick="document.getElementById('fileUpload').click();">
+                        <i class="fa-solid fa-prescription-bottle-medical text-success opacity-50 mb-4 fa-3x"></i>
+                        <h4 class="fw-bold text-white mb-2">Upload Product Label</h4>
+                        <p class="text-secondary mb-0">Tap to browse or take a photo</p>
+                    </div>
+                    <input class="form-control d-none" type="file" id="fileUpload" name="image" accept="image/*" required>
+                    
+                    <div id="filePreview" class="mt-4 text-center d-none">
+                        <img id="imagePreview" src="" class="img-fluid rounded border-glow" style="max-height: 300px;">
+                        <div class="mt-3"><button type="button" class="btn btn-sm btn-link text-danger" id="clearPreview">Remove Image</button></div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary-glow w-100 py-3 mt-4" id="submitBtn">
+                    <span><i class="fa-solid fa-magnifying-glass-chart me-2"></i> Scan with Gemini AI</span>
+                </button>
+
+                <div id="loadingDiv" class="text-center mt-4 d-none">
+                    <div class="loader-ring mx-auto mb-3"></div>
+                    <p class="text-success fw-bold">Analyzing product chemicals...</p>
+                </div>
+            </form>
+            {% else %}
+            <!-- Result Display -->
+            <div class="row">
+                <div class="col-md-5 mb-4">
+                    <img src="{{ url_for('static', filename=image_url) }}" class="img-fluid rounded-glow border-glow w-100">
+                    <a href="{{ url_for('fertilizer.scan') }}" class="btn btn-outline-glow w-100 mt-4">Scan Another</a>
+                </div>
+                <div class="col-md-7">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="text-white fw-bold mb-0">Scan Report</h3>
+                        <span class="badge bg-success border border-success border-opacity-25 rounded-pill px-3 py-2">AI Analyzed</span>
+                    </div>
+                    <div id="scan-result" class="text-white opacity-90 roadmap-output">
+                        {{ result_data }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const resultDiv = document.getElementById('scan-result');
+        if (resultDiv) {
+            resultDiv.innerHTML = marked.parse(resultDiv.innerText);
+            resultDiv.querySelectorAll('h2, h3, h4').forEach(h => {
+                h.classList.add('result-heading', 'h5');
+            });
+            resultDiv.querySelectorAll('ul').forEach(ul => {
+                ul.classList.add('list-unstyled', 'mt-2');
+                ul.querySelectorAll('li').forEach(li => {
+                    li.innerHTML = '<i class="fa-solid fa-caret-right text-success me-2"></i>' + li.innerHTML;
+                    li.classList.add('mb-2');
+                });
+            });
+        }
+
+        // Camera Logic
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        const fileUpload = document.getElementById('fileUpload');
+        const imagePreview = document.getElementById('imagePreview');
+        let stream = null;
+
+        document.getElementById('openCameraBtn')?.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = stream;
+                document.getElementById('camera-section').classList.remove('d-none');
+                document.getElementById('upload-section').classList.add('d-none');
+                document.getElementById('openCameraBtn').classList.add('d-none');
+            } catch (err) { alert('Camera access denied'); }
+        });
+
+        document.getElementById('closeCameraBtn')?.addEventListener('click', () => {
+            if(stream) stream.getTracks().forEach(t => t.stop());
+            document.getElementById('camera-section').classList.add('d-none');
+            document.getElementById('upload-section').classList.remove('d-none');
+            document.getElementById('openCameraBtn').classList.remove('d-none');
+        });
+
+        document.getElementById('captureBtn')?.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            canvas.toBlob(blob => {
+                const file = new File([blob], "scan.jpg", { type: "image/jpeg" });
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                fileUpload.files = dt.files;
+                
+                const reader = new FileReader();
+                reader.onload = e => {
+                    imagePreview.src = e.target.result;
+                    document.getElementById('filePreview').classList.remove('d-none');
+                    document.getElementById('dropZone').classList.add('d-none');
+                };
+                reader.readAsDataURL(file);
+                document.getElementById('closeCameraBtn').click();
+            }, 'image/jpeg');
+        });
+
+        fileUpload?.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    imagePreview.src = ev.target.result;
+                    document.getElementById('filePreview').classList.remove('d-none');
+                    document.getElementById('dropZone').classList.add('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('clearPreview')?.addEventListener('click', () => {
+            fileUpload.value = '';
+            document.getElementById('filePreview').classList.add('d-none');
+            document.getElementById('dropZone').classList.remove('d-none');
+        });
+
+        document.getElementById('scanForm')?.addEventListener('submit', () => {
+            document.getElementById('submitBtn').classList.add('d-none');
+            document.getElementById('loadingDiv').classList.remove('d-none');
+        });
+    });
+</script>
+{% endblock %}

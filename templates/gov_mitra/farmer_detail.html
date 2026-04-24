@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- Sidebar: Farmer Profile -->
+        <div class="col-md-4" data-aos="fade-right">
+            <div class="glass-card p-4 text-center">
+                <div class="avatar bg-info text-white mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                    {{ farmer.name[0] }}
+                </div>
+                <h3 class="fw-bold">{{ farmer.name }}</h3>
+                <p class="text-muted"><i class="fa-solid fa-map-location-dot"></i> {{ farmer.district }}, {{ farmer.state }}</p>
+                <hr>
+                <div class="text-start mb-3">
+                    <p class="mb-1 fw-bold small text-muted">Aadhaar / ID Verified</p>
+                    <p><i class="fa-solid fa-circle-check text-success"></i> Official Gov Record</p>
+                    
+                    <p class="mb-1 fw-bold small text-muted">Email</p>
+                    <p>{{ farmer.email }}</p>
+
+                    <p class="mb-1 fw-bold small text-muted">Phone</p>
+                    <p>{{ farmer.phone }}</p>
+                    
+                    <p class="mb-1 fw-bold small text-muted">Land Size</p>
+                    <p>{{ farmer.farm_size }} Acres</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Column: Analytics & Suggestions -->
+        <div class="col-md-8" data-aos="fade-left">
+            <!-- Yearly AI Suggestion -->
+            <div class="glass-card p-4 border-info mb-4 bg-info-light">
+                <div class="d-flex align-items-center">
+                    <div class="me-3 fs-1 text-info">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-1">Yearly AI Analysis</h4>
+                        <p class="mb-2 text-dark">{{ suggestion }}</p>
+                        <div class="small">
+                            <strong>Current Year Profit:</strong> 
+                            <span class="{{ 'text-success' if yearly_profit >= 0 else 'text-danger' }} fw-bold">
+                                ₹{{ yearly_profit }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quarter History Table -->
+            <div class="glass-card p-4">
+                <h4 class="fw-bold mb-4">Quarterly Performance Log</h4>
+                {% if surveys %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Year/Quarter</th>
+                                <th>Crop</th>
+                                <th>Profit/Loss</th>
+                                <th>Verification</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for survey in surveys %}
+                            <tr>
+                                <td>Year {{ survey.year }} - Q{{ survey.quarter }}</td>
+                                <td>{{ survey.crop_grown }}</td>
+                                <td>
+                                    <span class="{{ 'text-success' if survey.profit_loss >= 0 else 'text-danger' }} fw-bold">
+                                        {{ 'Profit' if survey.profit_loss >= 0 else 'Loss' }}: ₹{{ survey.profit_loss|abs }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="d-block text-muted">By {{ survey.collecting_official }}</small>
+                                    <span class="badge bg-success-light text-success"><i class="fa-solid fa-check-double"></i> Field Verified</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fa-solid fa-folder-open fa-3x text-muted mb-3"></i>
+                    <p>No surveys recorded yet for this farmer.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

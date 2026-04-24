@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}Shop Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-1 gradient-text"><i class="fa-solid fa-shop me-3"></i>{{ shop.shop_name }}</h2>
+        <p class="text-secondary mb-0"><i class="fa-solid fa-location-dot me-2"></i>{{ shop.address }}</p>
+    </div>
+    <div class="d-flex gap-3">
+        <a href="{{ url_for('shop.billing') }}" class="btn btn-primary-glow btn-sm shadow-sm py-2">
+            <span><i class="fa-solid fa-file-invoice me-2"></i> New Bill</span>
+        </a>
+        <a href="{{ url_for('shop.inventory') }}" class="btn btn-outline-glow btn-sm py-2 px-3">
+            <i class="fa-solid fa-boxes-stacked me-2"></i> Inventory
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="0">
+        <div class="stat-card glass-card h-100">
+            <div class="feature-icon-wrapper mx-auto mb-3"><i class="fa-solid fa-cubes"></i></div>
+            <h5 class="stat-number mb-1">{{ total_products }}</h5>
+            <span class="text-secondary small">Total Products</span>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
+        <div class="stat-card glass-card h-100 border-danger border-opacity-25" style="background: rgba(244,67,54,0.05);">
+            <div class="feature-icon-wrapper mx-auto mb-3" style="border-color: rgba(244,67,54,0.3); background: rgba(244,67,54,0.1);"><i class="fa-solid fa-triangle-exclamation text-danger"></i></div>
+            <h5 class="stat-number mb-1 text-danger">{{ low_stock|length }}</h5>
+            <span class="text-danger small fw-bold">Low Stock Items</span>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
+        <div class="stat-card glass-card h-100">
+            <div class="feature-icon-wrapper mx-auto mb-3" style="border-color: rgba(33,150,243,0.3); background: rgba(33,150,243,0.1);"><i class="fa-solid fa-truck-moving text-info"></i></div>
+            <h5 class="stat-number mb-1 text-info">{{ pending_orders|length }}</h5>
+            <span class="text-secondary small">Auto Orders Placed</span>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
+        <div class="stat-card glass-card h-100">
+            <div class="feature-icon-wrapper mx-auto mb-3" style="border-color: rgba(76,175,80,0.3); background: rgba(76,175,80,0.1);"><i class="fa-solid fa-indian-rupee-sign text-success"></i></div>
+            <h5 class="stat-number mb-1 text-success">₹{{ (recent_sales|map(attribute='total_amount')|sum)|round }}</h5>
+            <span class="text-secondary small">Recent Sales</span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7" data-aos="fade-right">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-clock-rotate-left text-success me-2"></i> Recent Sales</h5>
+            {% if recent_sales %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-light bg-transparent mb-0">
+                        <thead class="bg-glass-sm border-glass">
+                            <tr class="text-secondary small">
+                                <th>Client</th>
+                                <th>Date</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-top-0">
+                            {% for sale in recent_sales %}
+                            <tr class="border-glass">
+                                <td class="py-3 fw-bold text-dark">{{ sale.customer_name }}</td>
+                                <td class="py-3 text-secondary small">{{ sale.created_at.strftime('%b %d, %H:%M') }}</td>
+                                <td class="py-3 text-end text-success fw-bold">₹{{ sale.total_amount }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 opacity-50">
+                    <i class="fa-solid fa-receipt fa-3x mb-3"></i>
+                    <p>No sales recorded yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-5" data-aos="fade-left">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-bell text-warning me-2"></i> Stock Alerts</h5>
+            {% if low_stock %}
+                {% for item in low_stock %}
+                <div class="d-flex align-items-center justify-content-between p-3 rounded-glow mb-2 bg-glass-sm border-glass border-start-3 border-danger">
+                    <div>
+                        <h6 class="mb-1 text-dark">{{ item.name }}</h6>
+                        <span class="text-secondary small">Stock: <span class="text-danger fw-bold">{{ item.stock }}</span> / Limit: {{ item.min_threshold }}</span>
+                    </div>
+                    <i class="fa-solid fa-circle-exclamation text-danger"></i>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5 h-100 d-flex flex-column justify-content-center opacity-50">
+                    <i class="fa-solid fa-circle-check fa-3x mb-3 text-success"></i>
+                    <p>All stock levels healthy!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-12" data-aos="fade-up">
+        <div class="glass-card p-4 shadow-sm border-primary border-opacity-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-truck-fast text-primary me-2"></i> 
+                    Digital Customer Orders 
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill small ms-2">{{ customer_orders|length }} Total</span>
+                </h5>
+                <span class="small text-secondary">New requests appear here automatically</span>
+            </div>
+            
+            {% if customer_orders %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle border-0">
+                    <thead class="bg-glass-sm border-glass">
+                        <tr class="text-secondary small text-uppercase letter-spacing-1">
+                            <th>Order ID</th>
+                            <th>Customer / Address</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in customer_orders %}
+                        <tr class="border-glass">
+                            <td class="py-4">
+                                <span class="fw-bold text-dark">#{{ order.id }}</span>
+                                <div class="small text-secondary">{{ order.created_at.strftime('%d %b') }}</div>
+                            </td>
+                            <td class="py-4">
+                                <div class="fw-bold text-dark">{{ order.user_id }}</div>
+                                <div class="small text-secondary truncate-text" style="max-width: 250px;">{{ order.address }}</div>
+                            </td>
+                            <td class="py-4 fw-bold text-success">₹{{ order.total_amount }}</td>
+                            <td class="py-4">
+                                {% if order.status == 'Pending' %}
+                                    <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill border border-warning border-opacity-25">Awaiting Accept</span>
+                                {% elif order.status == 'Accepted' %}
+                                    <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill border border-info border-opacity-25">Ready to Ship</span>
+                                    <div class="small mt-1 text-primary fw-bold letter-spacing-1" title="Tracking ID"><i class="fa-solid fa-barcode me-1"></i> {{ order.tracking_id }}</div>
+                                {% else %}
+                                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill border border-success border-opacity-25">{{ order.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-4 text-end">
+                                {% if order.status == 'Pending' or order.status == 'Confirmed' %}
+                                <form action="{{ url_for('shop.accept_order', order_id=order.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success-glow px-4 py-2 rounded-pill shadow-sm">
+                                        <i class="fa-solid fa-check me-2"></i> Accept Order
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <a href="#" class="btn btn-sm btn-outline-glow px-3 py-2 rounded-pill ms-2"><i class="fa-solid fa-eye"></i></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 opacity-50">
+                <i class="fa-solid fa-box-open fa-3x mb-3 text-secondary"></i>
+                <p>No customer order requests found.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
