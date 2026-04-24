@@ -62,7 +62,7 @@ class GroqClient:
         start_time = time.time()
         try:
             payload = {
-                "model": current_model if not image_path else "llama-3.2-11b-vision-preview",
+                "model": current_model,
                 "messages": messages,
                 "temperature": temperature,
                 "max_tokens": 1024
