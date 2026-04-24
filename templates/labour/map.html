@@ -92,29 +92,33 @@
             var mapEl = document.getElementById('labour-map');
             if (!mapEl || mapInstance) return;
 
-            mapInstance = L.map('labour-map').setView([20.5937, 78.9629], 5);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap'
+            // Use high-performance dark tiles (CartoDB Dark Matter) instead of CSS filters
+            mapInstance = L.map('labour-map', {
+                fadeAnimation: true,
+                zoomAnimation: true,
+                markerZoomAnimation: true
+            }).setView([20.5937, 78.9629], 5);
+            
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; CartoDB',
+                subdomains: 'abcd',
+                maxZoom: 20
             }).addTo(mapInstance);
 
             markers.addTo(mapInstance);
-            
-            setTimeout(function() {
-                var tp = document.querySelector('.leaflet-tile-pane');
-                if (tp) tp.style.filter = 'invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)';
-            }, 100);
         };
 
-        var findLabour = function() {
+        var findLabour = function(isAuto = false) {
             var btn = document.getElementById('findWorkers');
             var workType = document.getElementById('workTypeFilter').value;
             var rad = parseInt(document.getElementById('radiusFilter').value) || 50000;
             
             if (!btn) return;
             
-            btn.innerHTML = '<span><i class="fa-solid fa-satellite-dish fa-spin me-2"></i> Scanning...</span>';
+            if (!isAuto) btn.innerHTML = '<span><i class="fa-solid fa-satellite-dish fa-spin me-2"></i> Scanning...</span>';
 
             if ("geolocation" in navigator) {
+                // Use fast cache if possible
                 navigator.geolocation.getCurrentPosition(function(pos) {
                     var uLat = pos.coords.latitude;
                     var uLng = pos.coords.longitude;
@@ -122,21 +126,20 @@
                     markers.clearLayers();
                     if (circleOverlay) mapInstance.removeLayer(circleOverlay);
 
-                    // User Marker
+                    // User Marker (Animated Pulse)
                     L.circleMarker([uLat, uLng], {
                         radius: 8, fillColor: "#00BCD4", color: "#fff", weight: 2, opacity: 1, fillOpacity: 1
-                    }).addTo(markers).bindPopup("<b>Your Farm Location</b>").openPopup();
+                    }).addTo(markers).bindPopup("<b>Your Location</b>");
 
-                    // Search Radius
+                    // Radius Overlay
                     circleOverlay = L.circle([uLat, uLng], {
-                        radius: rad, color: '#4CAF50', fillColor: '#4CAF50', fillOpacity: 0.1, weight: 1.5
+                        radius: rad, color: '#4CAF50', fillColor: '#4CAF50', fillOpacity: 0.08, weight: 1
                     }).addTo(mapInstance);
 
                     var workers = {{ map_data | tojson | safe }};
                     var count = 0;
 
                     workers.forEach(function(w) {
-                        // Work Type Filter
                         if (workType !== 'all' && w.work_type !== workType) return;
 
                         var wPos = L.latLng(w.lat, w.lng);
@@ -148,23 +151,19 @@
                                 <div class="labour-popup">
                                     <div class="d-flex align-items-center gap-3 mb-3">
                                         <img src="${w.profile_pic ? '/static/uploads/' + w.profile_pic : 'https://ui-avatars.com/api/?name=' + w.name + '&background=random'}" 
-                                             class="rounded-circle border border-2 border-success" 
+                                             class="rounded-circle border border-2 border-success shadow-sm" 
                                              style="width: 50px; height: 50px; object-fit: cover;">
                                         <div>
                                             <h6 class="fw-bold mb-0 text-success">${w.name}</h6>
-                                            ${w.is_verified ? '<span class="badge bg-success-glow border border-success border-opacity-50 py-1 px-2" style="font-size:0.65rem; color: #4CAF50;"><i class="fa-solid fa-circle-check me-1"></i>VERIFIED</span>' : ''}
+                                            ${w.is_verified ? '<span class="badge bg-success-glow py-1 px-2" style="font-size:0.65rem; color: #4CAF50;"><i class="fa-solid fa-circle-check me-1"></i>VERIFIED</span>' : ''}
                                         </div>
                                     </div>
-                                    <p class="small mb-1 text-light"><i class="fa-solid fa-briefcase me-2 text-success"></i>${(w.work_type && w.work_type.trim()) ? w.work_type : 'General Labour'}</p>
-                                    <p class="small mb-1 text-white-50"><i class="fa-solid fa-location-dot me-2 text-success"></i>${(w.address && w.address.trim()) ? w.address : 'Location Hidden'}</p>
-                                    <p class="small text-white-50 mb-3"><i class="fa-solid fa-map-pin me-1 text-success"></i> ${(dist/1000).toFixed(1)} km from your farm</p>
-                                    <div class="d-flex justify-content-between align-items-center mb-3 bg-white bg-opacity-10 p-2 rounded">
-                                         <span class="text-white-50 small">Wage:</span>
-                                         <span class="fw-bold text-white">${w.daily_wage ? '₹' + w.daily_wage + '/day' : 'Negotiable'}</span>
-                                    </div>
+                                    <p class="small mb-1"><i class="fa-solid fa-briefcase me-2 text-success"></i>${w.work_type || 'Labour'}</p>
+                                    <p class="small mb-1 text-white-50"><i class="fa-solid fa-location-dot me-2 text-success"></i>${w.address || 'Local'}</p>
+                                    <p class="small text-white-50 mb-3"><i class="fa-solid fa-map-pin me-1 text-success"></i> ${(dist/1000).toFixed(1)} km away</p>
                                     <div class="d-flex gap-2">
-                                        <a href="tel:${w.phone}" class="btn btn-sm btn-success flex-fill px-2 py-2"><i class="fa-solid fa-phone"></i> Call</a>
-                                        <a href="https://wa.me/91${w.phone.slice(-10)}" target="_blank" class="btn btn-sm btn-outline-success flex-fill px-2 py-2"><i class="fa-brands fa-whatsapp"></i> Chat</a>
+                                        <a href="tel:${w.phone}" class="btn btn-sm btn-success flex-fill py-2"><i class="fa-solid fa-phone"></i> Call</a>
+                                        <a href="https://wa.me/91${w.phone.slice(-10)}" target="_blank" class="btn btn-sm btn-outline-success flex-fill py-2"><i class="fa-brands fa-whatsapp"></i> Chat</a>
                                     </div>
                                 </div>
                             `;
@@ -173,19 +172,23 @@
                         }
                     });
 
-                    mapInstance.flyTo([uLat, uLng], 10.5, { duration: 2 });
-                    btn.innerHTML = `<span><i class="fa-solid fa-users me-2"></i> ${count} Match Found</span>`;
+                    // Fast Smooth FlyTo
+                    mapInstance.flyTo([uLat, uLng], 11, { duration: 1.2, easeLinearity: 0.25 });
+                    btn.innerHTML = `<span><i class="fa-solid fa-users me-2"></i> ${count} Matches Found</span>`;
                     
                 }, function() {
-                    alert("Location access denied. Please enable GPS to find workers.");
                     btn.innerHTML = '<span><i class="fa-solid fa-location-crosshairs me-2"></i> Find Workers</span>';
-                });
+                }, { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 });
             }
         };
 
         initMap();
-        document.getElementById('findWorkers').addEventListener('click', findLabour);
         
+        // Instant Filtering Event Listeners
+        document.getElementById('findWorkers').addEventListener('click', function() { findLabour(false); });
+        document.getElementById('workTypeFilter').addEventListener('change', function() { findLabour(true); });
+        document.getElementById('radiusFilter').addEventListener('change', function() { findLabour(true); });
+
         document.body.addEventListener('htmx:afterOnLoad', function() {
             if (!document.getElementById('labour-map')) {
                 mapInstance = null;
@@ -193,6 +196,7 @@
                 initMap();
             }
         });
+    })();
     })();
 </script>
 {% endblock %}
