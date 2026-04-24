@@ -212,13 +212,13 @@ if __name__ == '__main__':
 def add_security_headers(response):
     # Content Security Policy (Allows necessary scripts and styles)
     response.headers['Content-Security-Policy'] = (
-        "default-src 'self' https:; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; "
-        "style-src 'self' 'unsafe-inline' https:; "
-        "img-src 'self' data: https: http://openweathermap.org https://openweathermap.org; "
-        "font-src 'self' data: https:; "
-        "frame-src 'self' https:; "
-        "connect-src 'self' https:;"
+        "default-src 'self' http: https:; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' http: https:; "
+        "style-src 'self' 'unsafe-inline' http: https:; "
+        "img-src 'self' data: http: https:; "
+        "font-src 'self' data: http: https:; "
+        "frame-src 'self' http: https:; "
+        "connect-src 'self' http: https:;"
     )
     
     # HSTS (Forces HTTPS - 1 year)
