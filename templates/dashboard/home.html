@@ -36,13 +36,6 @@
             <span class="text-secondary small">Predictions Made</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6" data-aos="fade-up" data-aos-delay="300">
-        <div class="stat-card glass-card h-100">
-            <div class="feature-icon-wrapper mx-auto mb-3" style="border-color: rgba(244,67,54,0.3); background: rgba(244,67,54,0.1);"><i class="fa-solid fa-microscope text-danger"></i></div>
-            <h5 class="stat-number mb-1" data-count="{{ stats.diseases }}" style="background: linear-gradient(135deg, #F44336, #E91E63); -webkit-background-clip: text;">0</h5>
-            <span class="text-secondary small">Diseases Diagnosed</span>
-        </div>
-    </div>
     <div class="col-md-3 col-sm-6" data-aos="fade-up" data-aos-delay="450">
         <div class="stat-card glass-card h-100">
             <div class="feature-icon-wrapper mx-auto mb-3" style="border-color: rgba(255,152,0,0.3); background: rgba(255,152,0,0.1);"><i class="fa-solid fa-robot text-warning"></i></div>
@@ -56,10 +49,8 @@
 <div class="glass-card mb-5 p-4 dashboard-quick-actions" data-aos="fade-up" data-aos-delay="100">
     <h6 class="text-secondary fw-bold text-uppercase mb-4 small letter-spacing-1">Quick Actions</h6>
     <div class="d-flex flex-wrap gap-3">
-        <a href="{{ url_for('disease.detect') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-camera me-2"></i>Detect Disease</a>
         <a href="{{ url_for('dashboard.my_orders') }}" class="btn btn-outline-glow flex-fill py-3" style="border-color: rgba(255, 64, 129, 0.4);"><i class="fa-solid fa-truck-fast me-2 text-primary"></i>Track My Orders</a>
         <a href="{{ url_for('chatbot.chat') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-robot me-2"></i>Ask AgriBot</a>
-        <a href="{{ url_for('prediction.price') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-chart-bar me-2"></i>Price Forecast</a>
         <a href="{{ url_for('prediction.yield_prediction') }}" class="btn btn-outline-glow flex-fill py-3" style="border-color: rgba(46, 125, 50, 0.6);"><i class="fa-solid fa-sack-dollar me-2 text-success"></i>Yield & Profit</a>
         <a href="{{ url_for('marketplace.add_listing') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-plus-circle me-2"></i>Sell Produce</a>
         <a href="{{ url_for('marketplace.map_view') }}" class="btn btn-outline-glow flex-fill py-3"><i class="fa-solid fa-location-dot me-2"></i>Find Crop</a>
@@ -103,17 +94,6 @@
             <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-clock-rotate-left text-success me-2"></i>Recent Activity</h5>
             <div class="overflow-auto" style="max-height: 400px;">
                 <ul class="list-group list-group-flush bg-transparent">
-                    {% if recent_diseases %}
-                        <li class="list-group-item bg-transparent text-secondary small fw-bold px-0 border-secondary opacity-50">Recent Diagnoses</li>
-                        {% for d in recent_diseases %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 bg-transparent border-glass">
-                            <div class="text-dark">
-                                <i class="fa-solid fa-leaf text-danger me-2"></i> {{ d.disease_name }}
-                            </div>
-                            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25 rounded-pill px-3">{{ (d.confidence*100)|round }}%</span>
-                        </li>
-                        {% endfor %}
-                    {% endif %}
                     
                     {% if my_listings %}
                         <li class="list-group-item bg-transparent text-secondary small fw-bold px-0 border-secondary opacity-50 mt-3">Latest Listings</li>

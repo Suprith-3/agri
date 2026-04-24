@@ -1,10 +1,10 @@
 import os
 import json, re
-from .openrouter_client import OpenRouterClient
+from .groq_client import GroqClient
 from flask import current_app
 
 class YieldPredictor:
-    """Harvest yield estimation using OpenRouter."""
+    """Harvest yield estimation using Groq."""
 
     def __init__(self):
         import joblib
@@ -15,9 +15,8 @@ class YieldPredictor:
             self.model = None
 
     def predict(self, crop, area, state, district, soil_type, irrigation):
-        """Yield Prediction using OpenRouter."""
-        api_key = current_app.config.get('OPENROUTER_API_KEY')
-        client = OpenRouterClient(api_key=api_key)
+        """Yield Prediction using Groq."""
+        client = GroqClient()
 
         system_instruction = "You are a PhD Agronomy Expert. Output JSON ONLY. Accurate estimations for Indian conditions."
         user_prompt = f"""
@@ -49,11 +48,8 @@ class YieldPredictor:
         return {}
 
     def get_improvement_suggestions(self, crop, soil, irrigation):
-        """Get 3 expert tips using OpenRouter."""
-        api_key = current_app.config.get('OPENROUTER_API_KEY')
-        if not api_key: return ["Use better fertilizers", "Improve irrigation", "Check soil pH"]
-
-        client = OpenRouterClient(api_key=api_key)
+        """Get 3 expert tips using Groq."""
+        client = GroqClient()
         prompt = f"Provide 3 professional agronomy tips to improve {crop} yield on {soil} soil with {irrigation}. Short & actionable."
         
         response_text = client.generate_content(prompt=prompt)

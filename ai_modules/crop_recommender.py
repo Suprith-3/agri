@@ -33,7 +33,7 @@ class CropRecommender:
             return None
 
     def recommend(self, soil_type, water, season, lat, lng):
-        """Smart-Sequential Crop Recommendation using OpenRouter."""
+        """Smart-Sequential Crop Recommendation using Groq."""
         if not self.gemini_api_key:
             return self._fallback_recommend(soil_type, water, season)
 
@@ -44,7 +44,7 @@ class CropRecommender:
         Each object MUST have: name, score, yield_range, water_req, demand, profit, planting_month.
         """
         
-        client = OpenRouterClient(api_key=self.gemini_api_key)
+        client = GroqClient(api_key=self.gemini_api_key)
         response_text = client.generate_content(prompt=prompt, temperature=0.7)
 
         try:

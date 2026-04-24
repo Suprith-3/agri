@@ -1,20 +1,6 @@
 from datetime import datetime
 from . import db
 
-class PricePrediction(db.Model):
-    """Model for storing price prediction history."""
-    __tablename__ = 'price_predictions'
-
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    crop = db.Column(db.String(100), nullable=False)
-    state = db.Column(db.String(100), nullable=False)
-    month = db.Column(db.Integer, nullable=False)
-    year = db.Column(db.Integer, nullable=False)
-    predicted_price = db.Column(db.Float, nullable=False)
-    actual_price = db.Column(db.Float, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
 class YieldPrediction(db.Model):
     """Model for storing yield prediction history."""
     __tablename__ = 'yield_predictions'

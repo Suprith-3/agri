@@ -14,7 +14,6 @@ from models.user import User
 # Import Blueprints
 from routes.auth import auth_bp, bcrypt, mail
 from routes.dashboard import dashboard_bp
-from routes.disease import disease_bp
 from routes.chatbot import chatbot_bp
 from routes.prediction import prediction_bp
 from routes.recommendation import recommendation_bp
@@ -56,7 +55,6 @@ def create_app():
     # Register Blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
-    app.register_blueprint(disease_bp)
     app.register_blueprint(chatbot_bp)
     app.register_blueprint(prediction_bp)
     app.register_blueprint(recommendation_bp)
@@ -154,9 +152,8 @@ if __name__ == '__main__':
     with app.app_context():
         try:
             print("[DB Orbit] Establishing connection to BHOOMITRA Cloud (Supabase)...")
-            from models.crop import DiseaseDetection
             from models.marketplace import CropListing
-            from models.prediction import PricePrediction, YieldPrediction, ChatHistory
+            from models.prediction import YieldPrediction, ChatHistory
             from models.scheme import GovernmentScheme, SchemeApplication
             from models.labour import LabourWorker
             from models.shop import Shop, Product, Supplier, Sale, SaleItem, AutoOrder, ShopNotification

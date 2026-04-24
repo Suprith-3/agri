@@ -20,9 +20,7 @@ class User(db.Model, UserMixin):
     role = db.Column(db.String(20), default='farmer')  # farmer/admin
 
     # Relationships
-    disease_detections = db.relationship('DiseaseDetection', backref='user', lazy=True)
     chat_histories = db.relationship('ChatHistory', backref='user', lazy=True)
-    price_predictions = db.relationship('PricePrediction', backref='user', lazy=True)
     yield_predictions = db.relationship('YieldPrediction', backref='user', lazy=True)
     listings = db.relationship('CropListing', backref='farmer', lazy=True)
 

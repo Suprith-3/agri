@@ -1,21 +1,20 @@
 import json
 import re
-from .openrouter_client import OpenRouterClient
+from .groq_client import GroqClient
 from datetime import datetime
 
 class MarketFetcher:
-    """Helper to fetch 'real' APMC market rates using OpenRouter."""
+    """Helper to fetch 'real' APMC market rates using Groq."""
 
-    def __init__(self, api_key):
-        # api_key is OpenRouter API Key
+    def __init__(self, api_key=None):
         self.api_key = api_key
 
     def fetch_latest_rates(self, state="Karnataka", crop=None):
-        """Market rate retrieval using OpenRouter."""
+        """Market rate retrieval using Groq."""
         system_instruction = f"You are a real-time Agricultural Market Data API. Output JSON ONLY for {state} APMC rates. Use recent realistic data."
         user_prompt = f"Latest Mandi rates (April 2026) for {crop or 'major crops'} in {state}, India. JSON array: crop, mandi, price, arrival_quantity."
 
-        client = OpenRouterClient(api_key=self.api_key)
+        client = GroqClient(api_key=self.api_key)
         
         try:
             response_text = client.generate_content(

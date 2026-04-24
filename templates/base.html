@@ -76,8 +76,6 @@
                 <ul class="navbar-nav me-auto">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard.home') }}" aria-label="Dashboard"><i class="fa-solid fa-gauge" aria-hidden="true"></i></a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('disease.detect') }}" aria-label="Disease Detection"><i class="fa-solid fa-microscope" aria-hidden="true"></i></a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('prediction.price') }}" aria-label="Price Forecast"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('roadmap.index') }}" aria-label="Farming Roadmap"><i class="fa-solid fa-route" aria-hidden="true"></i></a></li>
                         <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('chatbot.chat') }}" aria-label="AgriBot Chat"><i class="fa-solid fa-robot" aria-hidden="true"></i></a></li>
                     {% endif %}
@@ -150,18 +148,6 @@
         </div>
         <div class="action-sheet-body" hx-boost="true" hx-target="#main-content" hx-select="#main-content">
             <div class="row g-3">
-                <div class="col-4">
-                    <a href="{{ url_for('disease.detect') }}" class="action-item" onclick="toggleActionSheet()">
-                        <i class="fa-solid fa-camera text-danger"></i>
-                        <span>Scan Plant</span>
-                    </a>
-                </div>
-                <div class="col-4">
-                    <a href="{{ url_for('prediction.price') }}" class="action-item" onclick="toggleActionSheet()">
-                        <i class="fa-solid fa-chart-line text-success"></i>
-                        <span>Price Forecast</span>
-                    </a>
-                </div>
                 <div class="col-4">
                     <a href="{{ url_for('labour.find_labour') }}" class="action-item" onclick="toggleActionSheet()">
                         <i class="fa-solid fa-users text-primary"></i>

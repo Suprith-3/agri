@@ -2,9 +2,8 @@ from flask import Blueprint, render_template
 from flask_login import login_required, current_user
 from models import db
 from models.user import User
-from models.crop import DiseaseDetection
 from models.marketplace import CropListing
-from models.prediction import PricePrediction, YieldPrediction, ChatHistory
+from models.prediction import YieldPrediction, ChatHistory
 from models.shop import Shop, CustomerOrder
 import requests
 from flask import current_app
@@ -30,15 +29,10 @@ def home():
     user_shop = Shop.query.filter_by(owner_id=current_user.id).first()
     # Statistics
     listings_count = CropListing.query.filter_by(farmer_id=current_user.id).count()
-    price_preds = PricePrediction.query.filter_by(user_id=current_user.id).count()
-    yield_preds = YieldPrediction.query.filter_by(user_id=current_user.id).count()
-    total_preds = price_preds + yield_preds
-    diseases_count = DiseaseDetection.query.filter_by(user_id=current_user.id).count()
+    total_preds = YieldPrediction.query.filter_by(user_id=current_user.id).count()
     chats_count = ChatHistory.query.filter_by(user_id=current_user.id).count()
     
     # Recent Activity
-    recent_diseases = DiseaseDetection.query.filter_by(user_id=current_user.id).order_by(DiseaseDetection.detected_at.desc()).limit(5).all()
-    recent_prices = PricePrediction.query.filter_by(user_id=current_user.id).order_by(PricePrediction.created_at.desc()).limit(3).all()
     my_listings = CropListing.query.filter_by(farmer_id=current_user.id).order_by(CropListing.created_at.desc()).limit(3).all()
 
     # Crop Price Data (Last 7 Days)
@@ -93,13 +87,10 @@ def home():
                            stats={
                                'listings': listings_count,
                                'predictions': total_preds,
-                               'diseases': diseases_count,
                                'chats': chats_count
                            },
                            price_labels=labels,
                            price_series=price_series,
-                           recent_diseases=recent_diseases,
-                           recent_prices=recent_prices,
                            my_listings=my_listings,
                            weather_data=weather_data,
                            user_shop=user_shop)

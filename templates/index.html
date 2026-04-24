@@ -55,15 +55,6 @@
 </section>
 
 <div class="row g-4 py-5 row-cols-1 row-cols-md-2 row-cols-xl-4">
-    <div class="col" data-aos="fade-up" data-aos-delay="0">
-        <div class="glass-card d-flex flex-column align-items-center text-center p-5 h-100">
-            <div class="feature-icon-wrapper"><i class="fa-solid fa-camera-retro"></i></div>
-            <h3 class="h4 text-dark mb-4">AI Disease Detection</h3>
-            <p class="text-secondary mb-4">Upload a photo of your diseased plant and get instant AI diagnosis along with complete treatment recommendations using organic or chemical methods.</p>
-            <a href="{{ url_for('disease.detect') }}" class="mt-auto fw-bold text-success text-decoration-none hover-glow">Try it out &rarr;</a>
-        </div>
-    </div>
-    
     <div class="col" data-aos="fade-up" data-aos-delay="100">
         <div class="glass-card d-flex flex-column align-items-center text-center p-5 h-100">
             <div class="feature-icon-wrapper" style="border-color: rgba(76, 175, 80, 0.3); background: rgba(76, 175, 80, 0.1);"><i class="fa-solid fa-route text-success"></i></div>
@@ -73,15 +64,6 @@
         </div>
     </div>
 
-    <div class="col" data-aos="fade-up" data-aos-delay="200">
-        <div class="glass-card d-flex flex-column align-items-center text-center p-5 h-100">
-            <div class="feature-icon-wrapper"><i class="fa-solid fa-chart-pie"></i></div>
-            <h3 class="h4 text-dark mb-4">Market Prediction</h3>
-            <p class="text-secondary mb-4">Stop guessing prices. Use our machine learning models to forecast future crop prices and yield based on soil, location, and climate data.</p>
-            <a href="{{ url_for('prediction.price') }}" class="mt-auto fw-bold text-success text-decoration-none hover-glow">Predict Price &rarr;</a>
-        </div>
-    </div>
-    
     <div class="col" data-aos="fade-up" data-aos-delay="300">
         <div class="glass-card d-flex flex-column align-items-center text-center p-5 h-100">
             <div class="feature-icon-wrapper"><i class="fa-solid fa-comments"></i></div>
@@ -104,7 +86,7 @@
 {% block extra_js %}
 <script>
     // Using var to allow re-declaration during HTMX navigation
-    var phrases = phrases || ["Smart Farming", "AI Disease Detection", "Price Predictions", "Digital Marketplace"];
+    var phrases = phrases || ["Smart Farming", "Digital Marketplace"];
     var elTyped = document.getElementById('typewriter');
     var phraseIdx = 0;
     var charIdx = 0;

@@ -1,61 +1,12 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
 from flask_login import login_required, current_user
 from models import db
-from models.prediction import PricePrediction, YieldPrediction, MarketRate
-from ai_modules.price_predictor import PricePredictor
+from models.prediction import YieldPrediction, MarketRate
 from ai_modules.yield_predictor import YieldPredictor
 from ai_modules.market_fetcher import MarketFetcher
 from datetime import datetime
 
 prediction_bp = Blueprint('prediction', __name__, url_prefix='/prediction')
-
-@prediction_bp.route('/price', methods=['GET', 'POST'])
-@login_required
-def price():
-    """Handle crop price prediction."""
-    if request.method == 'POST':
-        crop = request.form.get('crop')
-        state = request.form.get('state')
-        month = int(request.form.get('month'))
-        year = int(request.form.get('year'))
-        season = request.form.get('season')
-        market_type = request.form.get('market_type')
-        
-        try:
-            prediction_api = current_app.config.get('OPENROUTER_API_KEY')
-            predictor = PricePredictor(gemini_api_key=prediction_api)
-            predicted_price = predictor.predict(crop, state, month, year, season, market_type)
-            
-            # Save to history
-            record = PricePrediction(
-                user_id=current_user.id,
-                crop=crop,
-                state=state,
-                month=month,
-                year=year,
-                predicted_price=predicted_price
-            )
-            db.session.add(record)
-            db.session.commit()
-            
-            flash('Prediction successful!', 'success')
-            
-            # Pass data back to template for rendering charts
-            return render_template('prediction/price.html', 
-                                   result={
-                                       'predicted_price': predicted_price,
-                                       'crop': crop,
-                                       'month': month,
-                                       'year': year,
-                                       'range_low': predicted_price * 0.9,
-                                       'range_high': predicted_price * 1.1
-                                   })
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error predicting price: {str(e)}', 'danger')
-            return redirect(url_for('prediction.price'))
-            
-    return render_template('prediction/price.html', result=None)
 
 @prediction_bp.route('/yield', methods=['GET', 'POST'])
 @login_required
@@ -69,9 +20,16 @@ def yield_prediction():
         
         try:
             predictor = YieldPredictor()
-            # Fetch user location
-            state = current_user.state or "Karnataka"
-            district = current_user.district or "Unknown"
+            # Use form data (allows live geolocation override) or fallback to user profile
+            district = request.form.get('district') or current_user.district or "Unknown"
+            state = request.form.get('state') or current_user.state or "Karnataka"
+            lat = request.form.get('lat')
+            lng = request.form.get('lng')
+            
+            # Update location string to include coordinates if available
+            location_str = f"{district}, {state}"
+            if lat and lng:
+                location_str += f" (GPS: {lat}, {lng})"
             
             data = predictor.predict(crop, area, state, district, soil_type, irrigation)
             
@@ -101,7 +59,7 @@ def yield_prediction():
                 'confidence': data.get('confidence_score', '80%'),
                 'tips': tips,
                 'crop': crop,
-                'location': f"{district}, {state}"
+                'location': location_str
             }
             
             flash('Yield and Profit estimation completed!', 'success')

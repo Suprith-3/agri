@@ -120,61 +120,75 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #picker-map {
+        height: 350px;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        border: 2px solid rgba(76, 175, 80, 0.3);
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        z-index: 1;
+    }
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const latInput = document.getElementById('latInput');
         const lngInput = document.getElementById('lngInput');
+        const districtInput = document.getElementById('district');
+        const stateInput = document.getElementById('state');
         
-        // Use a container check to avoid double-init
         const mapContainer = document.getElementById('picker-map');
         if (!mapContainer || mapContainer._leaflet_id) return;
 
-        const map = L.map('picker-map', {
-            zoomControl: false,
-            attributionControl: false
-        }).setView([20.5937, 78.9629], 5);
+        const map = L.map('picker-map').setView([20.5937, 78.9629], 5);
         
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        
-        // Manual Dark Mode Fix for tiles
-        map.on('tileload', function() {
-            var tp = mapContainer.querySelector('.leaflet-tile-pane');
-            if (tp) tp.style.filter = 'invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)';
-        });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
 
         let marker = null;
 
-        map.on('click', function(e) {
-            if (marker) map.removeLayer(marker);
-            marker = L.marker(e.latlng).addTo(map);
-            latInput.value = e.latlng.lat;
-            lngInput.value = e.latlng.lng;
-            
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${e.latlng.lat}&lon=${e.latlng.lng}`)
+        function updateLocationName(lat, lng) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
                 .then(r => r.json())
                 .then(data => {
                     if(data.address) {
-                        if(data.address.state) document.getElementById('state').value = data.address.state;
-                        if(data.address.district || data.address.county) document.getElementById('district').value = data.address.district || data.address.county;
+                        const district = data.address.state_district || data.address.city || data.address.county || "";
+                        const state = data.address.state || "";
+                        districtInput.value = district.replace(' District', '');
+                        stateInput.value = state;
                     }
                 });
+        }
+
+        function setLocation(lat, lng, zoom = 13) {
+            const latlng = [lat, lng];
+            map.setView(latlng, zoom);
+            if (marker) map.removeLayer(marker);
+            marker = L.marker(latlng).addTo(map);
+            latInput.value = lat;
+            lngInput.value = lng;
+            updateLocationName(lat, lng);
+        }
+
+        map.on('click', function(e) {
+            setLocation(e.latlng.lat, e.latlng.lng, map.getZoom());
         });
 
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(p => {
-                map.setView([p.coords.latitude, p.coords.longitude], 12);
-                if (marker) map.removeLayer(marker);
-                marker = L.marker([p.coords.latitude, p.coords.longitude]).addTo(map);
-                latInput.value = p.coords.latitude;
-                lngInput.value = p.coords.longitude;
+                setLocation(p.coords.latitude, p.coords.longitude, 13);
             });
         }
 
-        // AGGRESSIVE RE-LAYOUT TO FIX SCRAMBLED TILES
-        window.addEventListener('load', () => { setTimeout(() => { map.invalidateSize(); }, 500); });
-        document.body.addEventListener('htmx:afterOnLoad', () => { setTimeout(() => { map.invalidateSize(); }, 500); });
+        // Fix for scrambled tiles
+        setTimeout(() => { map.invalidateSize(); }, 500);
     });
 
     function previewImage(input) {

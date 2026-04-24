@@ -19,6 +19,4 @@ gunicorn
 razorpay
 psycopg2-binary
 ultralytics
-google-generativeai
-google-genai
-httpx
+groq
