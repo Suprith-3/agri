@@ -213,12 +213,12 @@ def add_security_headers(response):
     # Content Security Policy (Allows necessary scripts and styles)
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdn.tailwindcss.com https://checkout.razorpay.com https://translate.google.com https://translate.googleapis.com; "
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://unpkg.com https://translate.googleapis.com; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdn.tailwindcss.com https://checkout.razorpay.com https://translate.google.com https://translate.googleapis.com https://kit.fontawesome.com; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://unpkg.com https://translate.googleapis.com https://cdnjs.cloudflare.com https://ka-f.fontawesome.com; "
         "img-src 'self' data: https:; "
-        "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; "
+        "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://ka-f.fontawesome.com; "
         "frame-src 'self' https://checkout.razorpay.com; "
-        "connect-src 'self' https://api.razorpay.com https://lumberjack.razorpay.com https://translate.googleapis.com;"
+        "connect-src 'self' https://api.razorpay.com https://lumberjack.razorpay.com https://translate.googleapis.com https://ka-f.fontawesome.com;"
     )
     
     # HSTS (Forces HTTPS - 1 year)
