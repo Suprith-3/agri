@@ -26,6 +26,7 @@ from routes.shop import shop_bp
 from routes.gov_mitra import gov_mitra_bp
 from routes.education import education_bp
 from routes.goat import goat_bp
+from routes.cooler import cooler_bp
 from routes.vision import vision_bp
 
 def create_app():
@@ -66,6 +67,7 @@ def create_app():
     app.register_blueprint(gov_mitra_bp)
     app.register_blueprint(education_bp)
     app.register_blueprint(goat_bp)
+    app.register_blueprint(cooler_bp)
     app.register_blueprint(vision_bp)
 
     # Ensure directories exist (Try/Except for Serverless read-only compatibility)

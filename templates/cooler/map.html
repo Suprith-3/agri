@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% block title %}Cold Chain Network - BHOOMITRA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map {
+        height: 600px;
+        width: 100%;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .map-card {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 32px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    .find-btn {
+        background: linear-gradient(135deg, #00ff88 0%, #00bdff 100%);
+        color: #000;
+        font-weight: 800;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(0, 255, 136, 0.2);
+    }
+    .find-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(0, 255, 136, 0.4);
+        color: #000;
+    }
+    .leaflet-popup-content-wrapper {
+        background: rgba(15, 23, 42, 0.9) !important;
+        color: white !important;
+        border-radius: 16px !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .leaflet-popup-tip { background: rgba(15, 23, 42, 0.9) !important; }
+    .status-badge {
+        font-size: 0.7rem;
+        padding: 4px 10px;
+        border-radius: 100px;
+        background: rgba(0, 255, 136, 0.1);
+        color: #00ff88;
+        border: 1px solid rgba(0, 255, 136, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="map-card" data-aos="fade-up">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <h2 class="text-white fw-bold mb-1">Cold Chain Network</h2>
+                <p class="text-secondary small mb-0">Locate cold storages and warehouses in Bagalkot, Karnataka</p>
+            </div>
+            <button class="find-btn" onclick="findNearby()">
+                <i class="fa-solid fa-location-crosshairs me-2"></i> FIND NEARBY COOLER
+            </button>
+        </div>
+        
+        <div id="map"></div>
+    </div>
+
+    <div class="row g-4" id="stats-row" data-aos="fade-up">
+        <div class="col-md-4">
+            <div class="glass-card p-4 text-center">
+                <h4 class="text-white fw-bold mb-1">68+</h4>
+                <p class="text-secondary small mb-0">Total Facilities</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-card p-4 text-center">
+                <h4 class="text-white fw-bold mb-1">15,000+ MT</h4>
+                <p class="text-secondary small mb-0">Combined Capacity</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-card p-4 text-center">
+                <h4 class="text-white fw-bold mb-1">Bagalkot</h4>
+                <p class="text-secondary small mb-0">Primary Region</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const facilities = [
+        {name: "A Hampannagouda S/O Karibasavanagouda", type: "Cold Storage", addr: "Sy.No.232,Jalihal Village, Bellary Taluk", manager: "N/A", phone: "N/A", cap: "86 MT", lat: 16.18, lng: 75.69},
+        {name: "A R Bagwan Cold Storage", type: "Cold Storage", addr: "APMC YARD", manager: "A R Bagwan", phone: "9XXXXXXX68", cap: "Unknown", lat: 16.185, lng: 75.70},
+        {name: "Bagalkot Milk Union Co-Op Ltd", type: "Cold Storage", addr: "VIDYAGIRI INDL AREA", manager: "Mahesh", phone: "9XXXXXXX99", cap: "20 MT", lat: 16.17, lng: 75.65},
+        {name: "Bagalkot Milk Union Co-Op Ltd (2)", type: "Cold Storage", addr: "VIDYAGIRI INDL AREA", manager: "Mahesh", phone: "9XXXXXXX99", cap: "Unknown", lat: 16.171, lng: 75.651},
+        {name: "Bagalkot Milk Union Co-Op Ltd (3)", type: "Cold Storage", addr: "NR BUS STAND BURILY COMPLEX", manager: "Maling Ray", phone: "8XXXXXXX03", cap: "20 MT", lat: 16.18, lng: 75.68},
+        {name: "Bagalkot Milk Union Cold Store", type: "Cold Storage", addr: "BUS STAND ROAD BADAMI", manager: "Veerbadraiah H Hiremutt", phone: "9XXXXXXX84", cap: "6 MT", lat: 15.91, lng: 75.68},
+        {name: "Basaveshwar Traders", type: "Warehouse", addr: "Plot No. 250, APMC Yard, Navanagar", manager: "Sangappa Rudrappa Shirur", phone: "N/A", cap: "84 MT", lat: 16.186, lng: 75.699},
+        {name: "Bimul Nandini Sub Storage", type: "Cold Storage", addr: "PKPS COMPLEX.COLLEGE RD", manager: "Shri Shail", phone: "9XXXXXXX07", cap: "Unknown", lat: 16.182, lng: 75.695},
+        {name: "Dempo Diary Industry Ltd", type: "Cold Storage", addr: "ASANGI V I BANHATTI", manager: "Vijaykumar Kagi", phone: "9XXXXXXX68", cap: "200 MT", lat: 16.36, lng: 75.18},
+        {name: "Green Food Park", type: "Cold Storage", addr: "KIADB INDL AREA", manager: "Parashu B", phone: "9XXXXXXX23", cap: "2400 MT", lat: 16.19, lng: 75.71},
+        {name: "Hanumareddeppa S/O Venkanagouda", type: "Warehouse", addr: "Plot No.157Palakanamaradi Village", manager: "N/A", phone: "N/A", cap: "65 MT", lat: 16.15, lng: 75.65},
+        {name: "I A Bidari", type: "Warehouse", addr: "Plot No.C-248, APMC Yard, Navanagar", manager: "Irappa Annappa Bidari", phone: "N/A", cap: "82 MT", lat: 16.187, lng: 75.701},
+        {name: "KSWC", type: "Warehouse", addr: "Bagalkot", manager: "N/A", phone: "N/A", cap: "5000 MT", lat: 16.18, lng: 75.69},
+        {name: "KSWC (Bagalkote)", type: "Warehouse", addr: "Sy. No. 134, 131, 129, 132:3, Muchakandi Viilage, APMC Yard", manager: "N/A", phone: "N/A", cap: "2152 MT", lat: 16.15, lng: 75.68},
+        {name: "M B Fruits Merchant", type: "Cold Storage", addr: "DURGADEVI NAGAR", manager: "Manjula", phone: "9XXXXXXX15", cap: "10 MT", lat: 16.182, lng: 75.691},
+        {name: "M H Mujawar", type: "Warehouse", addr: "G P S No. 776 And 777 Nangawadagi Village Hunagund Taluk", manager: "N/A", phone: "N/A", cap: "225 MT", lat: 16.06, lng: 76.05},
+        {name: "M M Kamble", type: "Warehouse", addr: "Plot No.B-267, APMC Yard, Navanagar", manager: "Mallikarjun Marutirao Kamble", phone: "N/A", cap: "51 MT", lat: 16.188, lng: 75.702},
+        {name: "M N Jumanal", type: "Warehouse", addr: "Plot No.A-43, APMC Yard, Navanagar", manager: "M N Jumanal", phone: "N/A", cap: "139 MT", lat: 16.185, lng: 75.698},
+        {name: "M/S A M Tapashetti", type: "Warehouse", addr: "B-119 APMC Yard, Navanagar", manager: "Ashok Mohan Tapashetti", phone: "N/A", cap: "180 MT", lat: 16.184, lng: 75.703},
+        {name: "M/S Aditya Traders", type: "Warehouse", addr: "No69, APMC, Navanagar", manager: "Devareddygouda A Patil", phone: "N/A", cap: "119 MT", lat: 16.186, lng: 75.697},
+        {name: "M/S B V Halkurki", type: "Warehouse", addr: "Plot No.C-78, APMC Yard, Navanagar", manager: "Basatteppa Veeranna Halkurki", phone: "N/A", cap: "177 MT", lat: 16.187, lng: 75.698},
+        {name: "M/S B V Kalburgi Rural Godown", type: "Warehouse", addr: "B 149 APMC Yard Navanagar", manager: "Balasaheb V Kalburgi", phone: "N/A", cap: "278 MT", lat: 16.185, lng: 75.705},
+        {name: "M/S C V Tapashetti", type: "Warehouse", addr: "Plot No.B-148, APMC Yard, Navanagar", manager: "Prakash Ishwarappa Tapashetti", phone: "N/A", cap: "167 MT", lat: 16.184, lng: 75.706},
+        {name: "M/S J N Surana", type: "Warehouse", addr: "Plot No.B-112, APMC Yard, Navanagar", manager: "Jayashree Nandala Surana", phone: "N/A", cap: "206 MT", lat: 16.183, lng: 75.702},
+        {name: "M/S Jyoti Trading Company", type: "Warehouse", addr: "B-158, APMC Yard, Navanagar", manager: "Manoj Bhavarlalaji Dhoot", phone: "N/A", cap: "413 MT", lat: 16.184, lng: 75.701},
+        {name: "M/S M G Somani", type: "Warehouse", addr: "Plot No.145 B Bagalkot New Township", manager: "Madhusudan G Somani", phone: "N/A", cap: "150 MT", lat: 16.180, lng: 75.690},
+        {name: "M/S M P Sajjan", type: "Warehouse", addr: "Plot No.C-14, APMC Yard, Navanagar", manager: "Mallappa Papanni Sajjan", phone: "N/A", cap: "205 MT", lat: 16.186, lng: 75.700},
+        {name: "M/S Maheshwar Traders", type: "Warehouse", addr: "Plot No.B-260, APMC Yard, Navanagar", manager: "Shri Laxminarayan S Tosaniwal", phone: "N/A", cap: "326 MT", lat: 16.187, lng: 75.703},
+        {name: "M/S Manik Trading Company", type: "Warehouse", addr: "245, APMC Yard, Navanagar", manager: "Vinodakumar Hansaraj Betala", phone: "N/A", cap: "142 MT", lat: 16.188, lng: 75.699},
+        {name: "M/S Maruti Agency", type: "Warehouse", addr: "150, APMC Yard, Navanagar", manager: "Krishna G Handral", phone: "N/A", cap: "197 MT", lat: 16.185, lng: 75.700},
+        {name: "M/S P.T.Halagalii Rural Godown", type: "Warehouse", addr: "APMC, Navanagar", manager: "Sri P.T.Halagali", phone: "N/A", cap: "225 MT", lat: 16.186, lng: 75.701},
+        {name: "M/S Prabhu S Pujari", type: "Warehouse", addr: "Plot No.251, APMC Yard, Navanagar", manager: "N/A", phone: "N/A", cap: "94 MT", lat: 16.187, lng: 75.702},
+        {name: "M/S Prakash Traders", type: "Warehouse", addr: "156 B APMC Yard, Navanagar", manager: "Prakash Nara", phone: "N/A", cap: "338 MT", lat: 16.184, lng: 75.704},
+        {name: "M/S Premium Enterprises", type: "Warehouse", addr: "Plot No.235, APMC Yard, Navangar", manager: "Ramesh S Patil", phone: "N/A", cap: "167 MT", lat: 16.185, lng: 75.706},
+        {name: "M/S R M Tapashetti Rural Godown", type: "Warehouse", addr: "APMC Yard Navanagar", manager: "Rajendra Kumar Tapashetti", phone: "N/A", cap: "181 MT", lat: 16.186, lng: 75.705},
+        {name: "M/S S B Bhattad", type: "Warehouse", addr: "271, APMC Yard, Navanagar", manager: "Shamsundar B Bhattad", phone: "N/A", cap: "166 MT", lat: 16.188, lng: 75.706},
+        {name: "M/S S D Tapashetti Rural Godown", type: "Warehouse", addr: "APMC Yard Navanagar", manager: "Dayananad Ishwarappa Tapashetti", phone: "N/A", cap: "175 MT", lat: 16.185, lng: 75.703},
+        {name: "M/S S M Kumatgi", type: "Warehouse", addr: "Plot No.B-167, APMC Yard, Navanagar", manager: "S M Kumatagi", phone: "N/A", cap: "133 MT", lat: 16.184, lng: 75.702},
+        {name: "M/S Sagar Traders", type: "Warehouse", addr: "B-232, APMC Yard, Navanagar", manager: "Ayyappa B Walmiki", phone: "N/A", cap: "208 MT", lat: 16.187, lng: 75.704},
+        {name: "M/S Sasnur Traders", type: "Warehouse", addr: "APMC Yard Navanagar", manager: "Mallikarjun Sasnur", phone: "N/A", cap: "408 MT", lat: 16.186, lng: 75.700},
+        {name: "M/S Shree Chanalingeshwar Traders", type: "Warehouse", addr: "255, APMC Yard, Navanagar", manager: "Chandappa H Walikar", phone: "N/A", cap: "177 MT", lat: 16.188, lng: 75.701},
+        {name: "M/S Shree Mahakuteshwar Traders", type: "Warehouse", addr: "B 157 APMC Yard, Navanagar", manager: "Keludeppa Mahadevappa", phone: "N/A", cap: "80 MT", lat: 16.184, lng: 75.700},
+        {name: "M/S Siddeshwar Oil Mill", type: "Warehouse", addr: "Plot No.C-71, APMC Yard, Navanagar", manager: "Veerappa S Kolar", phone: "N/A", cap: "178 MT", lat: 16.186, lng: 75.698},
+        {name: "M/S Siddeshwar Trading Co.", type: "Warehouse", addr: "Plot No.A-169, APMC Yard, Navanagar", manager: "Smt Shanta Siddappa Adin", phone: "N/A", cap: "389 MT", lat: 16.183, lng: 75.699},
+        {name: "M/S Sidrameshwar Traders", type: "Warehouse", addr: "Plot No.257, APMC Yard", manager: "Arvind Chandrashekar Balganur", phone: "N/A", cap: "182 MT", lat: 16.188, lng: 75.700},
+        {name: "M/S T Raddar Agro Godown", type: "Warehouse", addr: "APMC Yard NAVANAGAR", manager: "Sharana Basavaraj T Raddar", phone: "N/A", cap: "159 MT", lat: 16.185, lng: 75.702},
+        {name: "M/S Tosaniwal Trading Company", type: "Warehouse", addr: "Plot No.B-153, APMC Yard, Navanagar", manager: "Vijay Kumar S Tosaniwal", phone: "N/A", cap: "374 MT", lat: 16.184, lng: 75.701},
+        {name: "M/S United Seeds Company", type: "Warehouse", addr: "Plot No.B-139, APMC Yard, Navanagar", manager: "A K Edke", phone: "N/A", cap: "214 MT", lat: 16.183, lng: 75.700},
+        {name: "M/S V S Patil, B V Patil And S B Patil", type: "Warehouse", addr: "B 230 APMC Yard ,Navanagar", manager: "N/A", phone: "N/A", cap: "206 MT", lat: 16.187, lng: 75.703},
+        {name: "M/S V S Sobarad Rural Godown", type: "Warehouse", addr: "Plot No.B-129, APMC Yard, Navanagar", manager: "Veeranna S Sobarad", phone: "N/A", cap: "164 MT", lat: 16.183, lng: 75.704},
+        {name: "M/S V V Betala", type: "Warehouse", addr: "Plot No.B-146, APMC Yard, Navanagar", manager: "Vimal Vijaya Betal", phone: "N/A", cap: "177 MT", lat: 16.184, lng: 75.705},
+        {name: "M/S Venkateshwar Traders", type: "Warehouse", addr: "Plot No.A-1, APMC Yard, Navanagar", manager: "Y K Bennur", phone: "N/A", cap: "113 MT", lat: 16.181, lng: 75.697},
+        {name: "Madusudhana Reddy S/O Raja Reddy", type: "Warehouse", addr: "Sy.No.442, Jigani Village", manager: "N/A", phone: "N/A", cap: "10000 MT", lat: 16.180, lng: 75.690},
+        {name: "Maiboob Fruit Company", type: "Cold Storage", addr: "SANGAM RD.HUNGUND", manager: "Mahamed Yusuf", phone: "9XXXXXXX55", cap: "25 MT", lat: 16.06, lng: 76.05},
+        {name: "Nandini Cold Storage", type: "Cold Storage", addr: "NADIVINAPET GULEDAGUDDA", manager: "Erappa Kadebagilu", phone: "9XXXXXXX18", cap: "Unknown", lat: 16.05, lng: 75.78},
+        {name: "Nandini Milk Walk In Cold Storage", type: "Cold Storage", addr: "MANTOOR RD", manager: "S N Hadimani", phone: "9XXXXXXX65", cap: "Unknown", lat: 16.18, lng: 75.69},
+        {name: "Noorali A Mamadapur Rural Godown", type: "Warehouse", addr: "C-205, APMC Yard, Navanagar", manager: "Noorali A Mamadapur", phone: "N/A", cap: "211 MT", lat: 16.186, lng: 75.700},
+        {name: "Prabulingeswar Sugars & Chemicals", type: "Cold Storage", addr: "Siddapur, Jamkhandi Tq.", manager: "N/A", phone: "N/A", cap: "9081 MT", lat: 16.42, lng: 75.31},
+        {name: "Rajesab D Bagwan", type: "Cold Storage", addr: "GUDOOR RD.AMEENGAD", manager: "Hussain Bagwan", phone: "9XXXXXXX17", cap: "15 MT", lat: 16.05, lng: 75.95},
+        {name: "Sharanappa B Shirawar", type: "Warehouse", addr: "Plot No.254, APMC Yard, Navanagar", manager: "N/A", phone: "N/A", cap: "100 MT", lat: 16.187, lng: 75.700},
+        {name: "Shreemallikarjun Traders", type: "Warehouse", addr: "B 263 APMC Yard Navanagar", manager: "Shrishail Andaneppa Shettar", phone: "N/A", cap: "263 MT", lat: 16.188, lng: 75.701},
+        {name: "Shri Channamalleshwara Traders", type: "Warehouse", addr: "Plot No.B-270, APMC Yard, Navanagar", manager: "C S Hiremath", phone: "N/A", cap: "103 MT", lat: 16.188, lng: 75.702},
+        {name: "Smt Vanishri W/O H Sagari", type: "Warehouse", addr: "Sy.No.59/2, Haradolli Village", manager: "N/A", phone: "N/A", cap: "306 MT", lat: 16.18, lng: 75.69},
+        {name: "Sri Yamanappa Basappa Manga", type: "Warehouse", addr: "Sy 262/1+2H, Todalabagi Village, Jamkhandi", manager: "N/A", phone: "N/A", cap: "146 MT", lat: 16.42, lng: 75.31},
+        {name: "Suresh Fruit Company", type: "Cold Storage", addr: "KULAKARNI PET", manager: "Suresh", phone: "9XXXXXXX99", cap: "Unknown", lat: 16.18, lng: 75.69},
+        {name: "Veeresh Krishi Kendra", type: "Warehouse", addr: "B -229 APMC Yard,Navanagar", manager: "H B Patil", phone: "N/A", cap: "153 MT", lat: 16.187, lng: 75.704},
+        {name: "Venkateswara Fruit Company", type: "Cold Storage", addr: "BUS STAND.ILKAL", manager: "Srinivas", phone: "9XXXXXXX61", cap: "18 MT", lat: 15.96, lng: 76.11},
+        {name: "Vimalnath Trading Company", type: "Warehouse", addr: "Plot No.B-144, APMC YARD, Navanagar", manager: "Girish P Porwal", phone: "N/A", cap: "160 MT", lat: 16.184, lng: 75.703}
+    ];
+
+    const kswcFacilities = [
+        {name: "KSWC MYSORE", type: "Warehouse", addr: "New Sayaji Rao Road, MYSORE", manager: "SIDDAMAHADEVAIAH", phone: "7760966934", cap: "Govt Facility", lat: 12.30, lng: 76.64},
+        {name: "KSWC MYSORE U-I", type: "Warehouse", addr: "Bamboo Bazar, MYSORE", manager: "MAHESHWARI", phone: "7760966935", cap: "Govt Facility", lat: 12.31, lng: 76.65},
+        {name: "KSWC MYSORE U-II", type: "Warehouse", addr: "Nanjangud Road, MYSORE", manager: "DIVYASREE S G", phone: "7760966936", cap: "Govt Facility", lat: 12.28, lng: 76.66},
+        {name: "KSWC MYSORE U-III", type: "Warehouse", addr: "Hebbal, MYSORE", manager: "L.MAHADEVA", phone: "7760966937", cap: "Govt Facility", lat: 12.33, lng: 76.63},
+        {name: "KSWC T.NARASIPUR", type: "Warehouse", addr: "Link Road, T.NARASIPUR", manager: "SHIVAMMA J", phone: "7760966938", cap: "Govt Facility", lat: 12.20, lng: 76.90},
+        {name: "KSWC HUNSUR", type: "Warehouse", addr: "APMC Yard, B.M.Road, HUNSUR", manager: "T.D JAGADEESH", phone: "8310232997", cap: "Govt Facility", lat: 12.31, lng: 76.29},
+        {name: "KSWC BANNUR", type: "Warehouse", addr: "MandyaBannnur Road, BANNUR", manager: "M.R.RENUKA SWAMY", phone: "7760966940", cap: "Govt Facility", lat: 12.32, lng: 76.86},
+        {name: "KSWC NANJANAGUD", type: "Warehouse", addr: "APMC Yard, NANJANAGUD", manager: "SOWJANYA H.S", phone: "8722480485", cap: "Govt Facility", lat: 12.12, lng: 76.68},
+        {name: "KSWC C.R.NAGAR U-I", type: "Warehouse", addr: "APMC Yard, CHAMARAJANAGAR", manager: "SOWMYA H.M", phone: "7760966942", cap: "Govt Facility", lat: 11.92, lng: 76.94},
+        {name: "KSWC C.R.NAGAR U-II", type: "Warehouse", addr: "Kalanahundi Road, CHAMARAJANAGAR", manager: "PRADEEP .A.C", phone: "7760967049", cap: "Govt Facility", lat: 11.93, lng: 76.95},
+        {name: "KSWC GUDLUPETE", type: "Warehouse", addr: "APMC Yard, GUNDLUPET", manager: "PRADEEP .A.C", phone: "7760966941", cap: "Govt Facility", lat: 11.80, lng: 76.68},
+        {name: "KSWC KOLLEGAL", type: "Warehouse", addr: "APMC Yard, KOLLEGAL", manager: "N D RANGASWAMY", phone: "7760966943", cap: "Govt Facility", lat: 12.15, lng: 77.10},
+        {name: "KSWC HASSAN U-I", type: "Warehouse", addr: "B.M.Road, HASSAN", manager: "GRIESH RAJ URS", phone: "7795065984", cap: "Govt Facility", lat: 13.00, lng: 76.10},
+        {name: "KSWC HASSAN U-II", type: "Warehouse", addr: "KAIDB Industrial Area, HASSAN", manager: "HAMSA. N", phone: "7760966905", cap: "Govt Facility", lat: 13.01, lng: 76.12},
+        {name: "KSWC ARSIKERE", type: "Warehouse", addr: "APMC Yard, ARSIKERE", manager: "B.S.SHIVARAMU", phone: "7760966945", cap: "Govt Facility", lat: 13.31, lng: 76.25},
+        {name: "KSWC HOLENARASIPURA", type: "Warehouse", addr: "APMC Yard, HOLENARASIPUR", manager: "PUTTASWAMY", phone: "7760967788", cap: "Govt Facility", lat: 12.78, lng: 76.24},
+        {name: "KSWC MANDYA U-I", type: "Warehouse", addr: "Mysore Bangaloe Road, MANDYA", manager: "LOKESH D.S", phone: "7760966947", cap: "Govt Facility", lat: 12.52, lng: 76.90},
+        {name: "KSWC MANDYA U-II", type: "Warehouse", addr: "Kalenahalli Post, MANDYA", manager: "SUSHMA P.P", phone: "9686911581", cap: "Govt Facility", lat: 12.53, lng: 76.91},
+        {name: "KSWC K.R.PET", type: "Warehouse", addr: "APMC Yard, K.R.PET", manager: "VIJAYALAKSHMI", phone: "8749087989", cap: "Govt Facility", lat: 12.66, lng: 76.48},
+        {name: "KSWC MADDUR", type: "Warehouse", addr: "Chamanahalli, MADDUR", manager: "S.K.PRAKASH", phone: "7760966949", cap: "Govt Facility", lat: 12.58, lng: 77.04},
+        {name: "KSWC KIRUGAVAL", type: "Warehouse", addr: "Markal Road, KIRUGAVAL", manager: "A.DRASHAN", phone: "7760966950", cap: "Govt Facility", lat: 12.38, lng: 77.05},
+        {name: "KSWC K.R.NAGARA", type: "Warehouse", addr: "APMC Yard, K.R.NAGARA", manager: "RATHNAMMA S.T.", phone: "7760966951", cap: "Govt Facility", lat: 12.44, lng: 76.38},
+        {name: "KSWC KUSHALNAGAR", type: "Warehouse", addr: "Dam Road, KUSHALNAGAR", manager: "N.B.SHIVAPRAKASH", phone: "9980935655", cap: "Govt Facility", lat: 12.45, lng: 75.96},
+        {name: "KSWC PIRIYAPATTANA", type: "Warehouse", addr: "KSRTC Depot, PERIYAPATANA", manager: "FAKIRAPPA PHATAN", phone: "7975752843", cap: "Govt Facility", lat: 12.33, lng: 76.10},
+        {name: "KSWC BANGALORE RM", type: "Warehouse", addr: "Jayanagar, BANGALORE", manager: "Dr KUSUMA D.K", phone: "9606934366", cap: "Govt Facility", lat: 12.92, lng: 77.58},
+        {name: "KSWC WHITEFIELD", type: "Warehouse", addr: "Whitefield, BANGALORE", manager: "ASHWATHANARAYANA T.K.", phone: "7760966923", cap: "Govt Facility", lat: 12.96, lng: 77.74},
+        {name: "KSWC DODDABALLAPUR", type: "Warehouse", addr: "APMC Yard, DODDABALLAPUR", manager: "B.K. NAGARAJAIAH", phone: "7760966925", cap: "Govt Facility", lat: 13.29, lng: 77.54},
+        {name: "KSWC DEVANAHALLI", type: "Warehouse", addr: "DEVANAHALLI", manager: "NAGARAJ S", phone: "9483037021", cap: "Govt Facility", lat: 13.24, lng: 77.71},
+        {name: "KSWC CHIKKABALLAPUR", type: "Warehouse", addr: "APMC Yard, CHIKKABALLAPUR", manager: "SHILPA B.V", phone: "9606934389", cap: "Govt Facility", lat: 13.43, lng: 77.72},
+        {name: "KSWC TUMKUR U-I", type: "Warehouse", addr: "B.H.Road, TUMKUR", manager: "RAGHAVENDRA T.R", phone: "7760966926", cap: "Govt Facility", lat: 13.33, lng: 77.10},
+        {name: "KSWC TUMKUR U-II", type: "Warehouse", addr: "Sira Road, TUMKUR", manager: "T.BASAVARAJ", phone: "7760966927", cap: "Govt Facility", lat: 13.35, lng: 77.11},
+        {name: "KSWC TIPTUR", type: "Warehouse", addr: "APMC Yard, TIPTUR", manager: "HEMAVATHI", phone: "7760966928", cap: "Govt Facility", lat: 13.26, lng: 76.48},
+        {name: "KSWC KUNIGAL", type: "Warehouse", addr: "APMC Yard, KUNIGAL", manager: "T.R.LAXMAN", phone: "7760966929", cap: "Govt Facility", lat: 13.02, lng: 77.03},
+        {name: "KSWC SIRA", type: "Warehouse", addr: "APMC Yard, SIRA", manager: "RANGANATHAIAH", phone: "9448552764", cap: "Govt Facility", lat: 13.74, lng: 76.90},
+        {name: "KSWC SHIMOGA RM", type: "Warehouse", addr: "Gandhi Nagar, SHIMOGA", manager: "BASAVARAJU .N M", phone: "7760966953", cap: "Govt Facility", lat: 13.92, lng: 75.56},
+        {name: "KSWC SAGAR", type: "Warehouse", addr: "APMC Yard, SAGAR", manager: "NINGARAJA. S", phone: "9986678056", cap: "Govt Facility", lat: 14.16, lng: 75.03},
+        {name: "KSWC BHADRAVATHI", type: "Warehouse", addr: "APMC Yard, BHADRAVATHI", manager: "M.H.PRAKASH", phone: "7760966958", cap: "Govt Facility", lat: 13.84, lng: 75.70},
+        {name: "KSWC CHICKMAGALUR", type: "Warehouse", addr: "APMC Yard, CHICKMANGALORE", manager: "RUKMAYYA PUJARI", phone: "9448015222", cap: "Govt Facility", lat: 13.31, lng: 75.77},
+        {name: "KSWC MANGALORE", type: "Warehouse", addr: "Kaikamba, Kulashekar, MANGALORE", manager: "VINAYAK NAIK", phone: "9900919332", cap: "Govt Facility", lat: 12.87, lng: 74.84},
+        {name: "KSWC DAVANGERE RM", type: "Warehouse", addr: "A.P.M.C., YARD, DAVANAGERE", manager: "MALTESH TALWAR", phone: "7760966964", cap: "Govt Facility", lat: 14.46, lng: 75.92},
+        {name: "KSWC HARIHAR", type: "Warehouse", addr: "APMC, HARIHAR", manager: "NATARAJA JAWALI", phone: "7760966967", cap: "Govt Facility", lat: 14.51, lng: 75.80},
+        {name: "KSWC CHITRADURGA", type: "Warehouse", addr: "APMC Yard, CHITRADURGA", manager: "B.T.RAVISHANKAR", phone: "7760966971", cap: "Govt Facility", lat: 14.22, lng: 76.39},
+        {name: "KSWC HUBLI RM", type: "Warehouse", addr: "New Cotton Market Yard, A.P.M.C, HUBLI", manager: "S.P.LONAR", phone: "7760966981", cap: "Govt Facility", lat: 15.36, lng: 75.12},
+        {name: "KSWC DHARWAD", type: "Warehouse", addr: "A.P.M.C. Yard, DHARWAD", manager: "NAJATH PARVEEN NAVLUR", phone: "7760966984", cap: "Govt Facility", lat: 15.45, lng: 75.00},
+        {name: "KSWC BAGALKOT U-I", type: "Warehouse", addr: "New APMC Yard, Navanagar, BAGALKOTE", manager: "K.M.SHIVANANDA SWAMY", phone: "7760966987", cap: "Govt Facility", lat: 16.18, lng: 75.70},
+        {name: "KSWC GADAG", type: "Warehouse", addr: "Near German Hospital, Bettegeri, GADAG", manager: "SHARANABASAPPA", phone: "7760966992", cap: "Govt Facility", lat: 15.43, lng: 75.64},
+        {name: "KSWC BELGAUM", type: "Warehouse", addr: "Kanabargi Industrial Area, Belgaum", manager: "ABHINANDANAGOWDA PATIL KULKARNI", phone: "7760966999", cap: "Govt Facility", lat: 15.84, lng: 74.50},
+        {name: "KSWC KALABURAGI RM", type: "Warehouse", addr: "Vasant Nagar, KALABURAGI", manager: "NEMAPPA LAMANI", phone: "7760967023", cap: "Govt Facility", lat: 17.32, lng: 76.83},
+        {name: "KSWC YADGIRI", type: "Warehouse", addr: "Panchamma Kotte Main Road, YADGIRI", manager: "K.CHANNABASAIAH", phone: "7480080259", cap: "Govt Facility", lat: 16.76, lng: 77.13},
+        {name: "KSWC BIDAR", type: "Warehouse", addr: "Milur Post, BIDAR", manager: "SHIVAJI JANAWADE", phone: "7760967034", cap: "Govt Facility", lat: 17.91, lng: 77.51},
+        {name: "KSWC BIJAPUR U-I", type: "Warehouse", addr: "APMC Yard, BIJAPUR", manager: "S.P.LONAR", phone: "9741275350", cap: "Govt Facility", lat: 16.83, lng: 75.71},
+        {name: "KSWC RAICHUR RM", type: "Warehouse", addr: "Rajendra Gunj, RAICHUR", manager: "MAHESH", phone: "6361581057", cap: "Govt Facility", lat: 16.20, lng: 77.36},
+        {name: "KSWC SINDHANUR U-1", type: "Warehouse", addr: "APMC Yard, SINDHANUR", manager: "ANANDKUMAR", phone: "9448434941", cap: "Govt Facility", lat: 15.76, lng: 76.76},
+        {name: "KSWC KOPPAL", type: "Warehouse", addr: "APMC Yard, KOPPAL", manager: "SHEKAPPA CHALAVADI", phone: "9148915809", cap: "Govt Facility", lat: 15.35, lng: 76.15},
+        {name: "KSWC BELLARY U-I", type: "Warehouse", addr: "KIADB Industrial Area, BELLARY", manager: "SHARAVATHI", phone: "7760961017", cap: "Govt Facility", lat: 15.13, lng: 76.92},
+        {name: "KSWC HOSPET", type: "Warehouse", addr: "APMC Yard, Dam Road, HOSPET", manager: "MARUTHI BANDIVADDAR", phone: "7760967018", cap: "Govt Facility", lat: 15.26, lng: 76.39}
+    ];
+
+    facilities.push(...kswcFacilities);
+
+    var map = L.map('map').setView([16.18, 75.70], 10);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var markers = L.layerGroup().addTo(map);
+
+    function loadMarkers(filtered = null) {
+        markers.clearLayers();
+        const data = filtered || facilities;
+        data.forEach(f => {
+            const popup = `
+                <div class="p-2">
+                    <span class="status-badge mb-2 d-inline-block">${f.type}</span>
+                    <h6 class="text-white fw-bold mb-1">${f.name}</h6>
+                    <p class="text-secondary small mb-2"><i class="fa-solid fa-location-dot me-1"></i> ${f.addr}</p>
+                    <div class="border-top border-white border-opacity-10 pt-2 mt-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-secondary">Manager:</span>
+                            <span class="text-white">${f.manager}</span>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-secondary">Capacity:</span>
+                            <span class="text-success fw-bold">${f.cap}</span>
+                        </div>
+                    </div>
+                    <a href="tel:${f.phone}" class="btn btn-sm btn-success w-100 mt-3 rounded-pill">
+                        <i class="fa-solid fa-phone me-1"></i> Call to Book
+                    </a>
+                </div>
+            `;
+            L.marker([f.lat, f.lng]).addTo(markers).bindPopup(popup);
+        });
+    }
+
+    loadMarkers();
+
+    function findNearby() {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(position => {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+
+            // Haversine formula to find distance within 50km
+            const nearby = facilities.filter(f => {
+                const R = 6371; // km
+                const dLat = (f.lat - userLat) * Math.PI / 180;
+                const dLng = (f.lng - userLng) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                          Math.cos(userLat * Math.PI / 180) * Math.cos(f.lat * Math.PI / 180) * 
+                          Math.sin(dLng/2) * Math.sin(dLng/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                const d = R * c;
+                return d <= 50;
+            });
+
+            if (nearby.length > 0) {
+                loadMarkers(nearby);
+                map.setView([userLat, userLng], 11);
+                L.marker([userLat, userLng], {icon: L.divIcon({className: 'user-marker', html: '<div style="background:#00ff88; width:15px; height:15px; border-radius:50%; border:3px solid white;"></div>'})}).addTo(map).bindPopup("Your Location").openPopup();
+                alert(`Found ${nearby.length} facilities within 50km!`);
+            } else {
+                alert("No cold storages found within 50km of your current location.");
+            }
+        }, () => {
+            alert("Unable to retrieve your location. Please check permissions.");
+        });
+    }
+</script>
+{% endblock %}
