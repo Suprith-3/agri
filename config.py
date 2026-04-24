@@ -25,7 +25,9 @@ class Config:
         if not url or 'postgresql' not in url: return True
         try:
             import socket
+            # Fast DNS check with 1-second timeout
             host = url.split('@')[-1].split(':')[0].split('/')[0]
+            socket.setdefaulttimeout(1.0)
             socket.gethostbyname(host)
             return True
         except:
